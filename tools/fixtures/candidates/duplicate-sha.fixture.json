@@ -1,0 +1,35 @@
+{
+  "candidate_id": "fixture-duplicate-sha",
+  "candidate_type": "asset_candidate",
+  "submitted_by_role": "user",
+  "submitted_at_utc": "2026-04-23T00:00:00Z",
+  "status": "submitted",
+  "source_url": "https://example.invalid/synthetic-duplicate",
+  "source_name": "Tabler Icons",
+  "declared_license": "MIT",
+  "declared_commercial_use_allowed": true,
+  "declared_attribution_required": false,
+  "asset_type": "icon",
+  "intended_use": "ui",
+  "files": [
+    {
+      "name": "synthetic-duplicate.svg",
+      "sha256": "5555555555555555555555555555555555555555555555555555555555555555",
+      "size_bytes": 128,
+      "format": ".svg"
+    }
+  ],
+  "user_notes": "Synthetic fixture uses test_registry_duplicate_sha to avoid real private registry hashes.",
+  "preflight": {
+    "status": "submitted",
+    "checks": []
+  },
+  "approval": {
+    "status": "not_requested",
+    "reviewed_by_role": null,
+    "reviewed_at_utc": null,
+    "notes": ""
+  },
+  "test_registry_duplicate_sha": true,
+  "expected_preflight_status": "rejected"
+}

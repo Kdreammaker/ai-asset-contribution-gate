@@ -1,0 +1,188 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "operation-proposal.schema.json",
+  "title": "Public asset candidate operation proposal",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "operation_id",
+    "operation_type",
+    "risk_level",
+    "requires_approval",
+    "intent",
+    "inputs",
+    "expected_outputs"
+  ],
+  "properties": {
+    "operation_id": {
+      "type": "string",
+      "minLength": 1
+    },
+    "operation_type": {
+      "type": "string",
+      "enum": [
+        "candidate_add",
+        "candidate_review",
+        "candidate_preflight",
+        "candidate_license_review",
+        "candidate_duplicate_review",
+        "candidate_promotion_proposal",
+        "candidate_promotion_dry_run",
+        "candidate_promote"
+      ]
+    },
+    "risk_level": {
+      "type": "string",
+      "enum": [
+        "low",
+        "medium",
+        "high",
+        "critical"
+      ]
+    },
+    "requires_approval": {
+      "type": "boolean"
+    },
+    "intent": {
+      "type": "string",
+      "minLength": 1
+    },
+    "candidate_id": {
+      "type": "string"
+    },
+    "reason": {
+      "type": "string"
+    },
+    "inputs": {
+      "type": "object",
+      "additionalProperties": true
+    },
+    "expected_outputs": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "minItems": 1
+    },
+    "files_to_read": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "uniqueItems": true
+    },
+    "files_to_modify": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "uniqueItems": true
+    },
+    "validation_required": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "uniqueItems": true
+    },
+    "approval": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "status"
+      ],
+      "properties": {
+        "status": {
+          "type": "string",
+          "enum": [
+            "proposed",
+            "approved",
+            "rejected",
+            "applied"
+          ]
+        },
+        "approved_by": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "approved_at_utc": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "format": "date-time"
+        },
+        "notes": {
+          "type": "string"
+        }
+      }
+    },
+    "summary": {
+      "type": "object",
+      "additionalProperties": true
+    },
+    "actions": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": true
+      }
+    },
+    "created_at_utc": {
+      "type": "string",
+      "format": "date-time"
+    }
+  },
+  "allOf": [
+    {
+      "if": {
+        "properties": {
+          "risk_level": {
+            "enum": [
+              "high",
+              "critical"
+            ]
+          }
+        },
+        "required": [
+          "risk_level"
+        ]
+      },
+      "then": {
+        "properties": {
+          "requires_approval": {
+            "const": true
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "operation_type": {
+            "enum": [
+              "candidate_promote",
+              "candidate_promotion_proposal"
+            ]
+          }
+        },
+        "required": [
+          "operation_type"
+        ]
+      },
+      "then": {
+        "required": [
+          "approval",
+          "validation_required"
+        ],
+        "properties": {
+          "requires_approval": {
+            "const": true
+          }
+        }
+      }
+    }
+  ]
+}

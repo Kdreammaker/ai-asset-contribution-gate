@@ -1,0 +1,34 @@
+{
+  "candidate_id": "fixture-commercially-restricted",
+  "candidate_type": "asset_candidate",
+  "submitted_by_role": "user",
+  "submitted_at_utc": "2026-04-23T00:00:00Z",
+  "status": "submitted",
+  "source_url": "https://example.invalid/personal-use-only",
+  "source_name": "Synthetic Personal Use Source",
+  "declared_license": "personal use only",
+  "declared_commercial_use_allowed": false,
+  "declared_attribution_required": null,
+  "asset_type": "image",
+  "intended_use": "web-page",
+  "files": [
+    {
+      "name": "synthetic-personal-use.webp",
+      "sha256": "4444444444444444444444444444444444444444444444444444444444444444",
+      "size_bytes": 512,
+      "format": ".webp"
+    }
+  ],
+  "user_notes": "Synthetic fixture for commercially restricted license.",
+  "preflight": {
+    "status": "submitted",
+    "checks": []
+  },
+  "approval": {
+    "status": "not_requested",
+    "reviewed_by_role": null,
+    "reviewed_at_utc": null,
+    "notes": ""
+  },
+  "expected_preflight_status": "license_review_required"
+}

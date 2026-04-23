@@ -1,0 +1,172 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "candidate-record.schema.json",
+  "title": "AI asset candidate record",
+  "type": "object",
+  "additionalProperties": true,
+  "required": [
+    "candidate_id",
+    "candidate_type",
+    "submitted_by_role",
+    "submitted_at_utc",
+    "status",
+    "asset_type",
+    "files",
+    "preflight",
+    "approval"
+  ],
+  "properties": {
+    "candidate_id": {
+      "type": "string",
+      "minLength": 1
+    },
+    "candidate_type": {
+      "type": "string",
+      "enum": [
+        "asset_candidate",
+        "metadata_fix_candidate",
+        "tag_translation_candidate",
+        "quality_rule_candidate",
+        "recommended_set_candidate",
+        "documentation_candidate",
+        "source_policy_candidate"
+      ]
+    },
+    "submitted_by_role": {
+      "type": "string",
+      "enum": ["user", "maintainer", "admin", "master", "external-ai"]
+    },
+    "submitted_at_utc": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "submitted",
+        "preflight_failed",
+        "review_required",
+        "license_review_required",
+        "approved",
+        "rejected",
+        "promoted",
+        "superseded"
+      ]
+    },
+    "source_url": {
+      "type": "string"
+    },
+    "source_name": {
+      "type": "string"
+    },
+    "declared_license": {
+      "type": "string"
+    },
+    "declared_license_class": {
+      "type": "string"
+    },
+    "declared_commercial_use_allowed": {
+      "type": ["boolean", "null"]
+    },
+    "declared_attribution_required": {
+      "type": ["boolean", "null"]
+    },
+    "asset_type": {
+      "type": "string"
+    },
+    "intended_use": {
+      "type": "string"
+    },
+    "files": {
+      "type": "array",
+      "minItems": 0,
+      "items": {
+        "type": "object",
+        "additionalProperties": true,
+        "required": ["sha256"],
+        "properties": {
+          "path": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          },
+          "sha256": {
+            "type": "string"
+          },
+          "size_bytes": {
+            "type": ["integer", "null"],
+            "minimum": 0
+          },
+          "format": {
+            "type": "string"
+          }
+        }
+      }
+    },
+    "user_notes": {
+      "type": "string"
+    },
+    "preflight": {
+      "type": "object",
+      "additionalProperties": true,
+      "required": ["status", "checks"],
+      "properties": {
+        "status": {
+          "type": "string",
+          "enum": [
+            "submitted",
+            "preflight_failed",
+            "review_required",
+            "license_review_required",
+            "approved",
+            "rejected",
+            "promoted",
+            "superseded"
+          ]
+        },
+        "checks": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "additionalProperties": true,
+            "required": ["name", "status"],
+            "properties": {
+              "name": {
+                "type": "string"
+              },
+              "status": {
+                "type": "string",
+                "enum": ["pass", "warn", "fail", "review"]
+              },
+              "reason": {
+                "type": "string"
+              }
+            }
+          }
+        }
+      }
+    },
+    "approval": {
+      "type": "object",
+      "additionalProperties": true,
+      "required": ["status"],
+      "properties": {
+        "status": {
+          "type": "string",
+          "enum": ["not_requested", "proposed", "approved", "rejected", "applied"]
+        },
+        "reviewed_by_role": {
+          "type": ["string", "null"]
+        },
+        "reviewed_at_utc": {
+          "type": ["string", "null"],
+          "format": "date-time"
+        },
+        "notes": {
+          "type": "string"
+        }
+      }
+    }
+  }
+}

@@ -1,0 +1,27 @@
+{
+  "candidate_id": "fixture-malformed",
+  "candidate_type": "asset_candidate",
+  "submitted_by_role": "user",
+  "submitted_at_utc": "2026-04-23T00:00:00Z",
+  "status": "submitted",
+  "source_url": "",
+  "source_name": "",
+  "declared_license": "",
+  "declared_commercial_use_allowed": null,
+  "declared_attribution_required": null,
+  "asset_type": "",
+  "intended_use": "",
+  "files": [],
+  "user_notes": "Synthetic fixture for malformed candidate.",
+  "preflight": {
+    "status": "submitted",
+    "checks": []
+  },
+  "approval": {
+    "status": "not_requested",
+    "reviewed_by_role": null,
+    "reviewed_at_utc": null,
+    "notes": ""
+  },
+  "expected_preflight_status": "preflight_failed"
+}
