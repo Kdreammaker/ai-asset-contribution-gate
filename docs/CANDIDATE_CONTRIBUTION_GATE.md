@@ -27,31 +27,32 @@ superseded
 Storage directories:
 
 ```text
-downloaded-assets/candidates/pending/
-downloaded-assets/candidates/preflight-failed/
-downloaded-assets/candidates/review-required/
-downloaded-assets/candidates/license-review-required/
-downloaded-assets/candidates/approved/
-downloaded-assets/candidates/rejected/
-downloaded-assets/candidates/promoted/
-downloaded-assets/candidates/superseded/
+candidates/pending/
+candidates/preflight-failed/
+candidates/review-required/
+candidates/license-review-required/
+candidates/approved/
+candidates/rejected/
+candidates/promoted/
+candidates/superseded/
 ```
 
 Candidate records follow:
 
 ```text
-downloaded-assets/registry/candidate-record.schema.json
+schemas/candidate-record.schema.json
 ```
 
 ## Commands
 
-Use `assetctl.ps1` from the workspace root.
+Use `tools/candidate-gate.ps1` from the public toolkit root. A private
+workspace can wrap the same engine with its own `assetctl.ps1` command router.
 
 Add a file as a candidate:
 
 ```powershell
-.\downloaded-assets\tools\assetctl.ps1 candidate-add `
-  -CandidatePath ".\downloaded-assets\_inbox\icons\example.svg" `
+.\tools\candidate-gate.ps1 -Operation add `
+  -File ".\sample-assets\example.svg" `
   -SourceUrl "https://example.invalid/source" `
   -SourceName "Tabler Icons" `
   -DeclaredLicense "MIT" `
@@ -63,15 +64,15 @@ Add a file as a candidate:
 Review one candidate or all candidates:
 
 ```powershell
-.\downloaded-assets\tools\assetctl.ps1 candidate-review -InputPath ".\downloaded-assets\candidates\review-required\cand-example.candidate.json"
-.\downloaded-assets\tools\assetctl.ps1 candidate-review
+.\tools\candidate-gate.ps1 -Operation review -InputPath ".\candidates\review-required\cand-example.candidate.json"
+.\tools\candidate-gate.ps1 -Operation review
 ```
 
 Run a promotion dry-run:
 
 ```powershell
-.\downloaded-assets\tools\assetctl.ps1 candidate-promote `
-  -InputPath ".\downloaded-assets\candidates\approved\cand-example.candidate.json" `
+.\tools\candidate-gate.ps1 -Operation promote `
+  -InputPath ".\candidates\approved\cand-example.candidate.json" `
   -ActorRole master `
   -Approve
 ```
@@ -82,13 +83,13 @@ private, explicit, and approval-gated.
 Validate the safety fixtures:
 
 ```powershell
-.\downloaded-assets\tools\assetctl.ps1 candidate-validate-fixtures
+.\tools\candidate-gate.ps1 -Operation validate-fixtures -AssetsRoot .
 ```
 
 Scan public-safe staging content before publishing:
 
 ```powershell
-.\downloaded-assets\tools\assetctl.ps1 public-leak-scan -ScanPath ".\public-toolkit-staging"
+.\tools\candidate-gate.ps1 -Operation leak-scan -Path .
 ```
 
 ## Preflight Checks
@@ -139,11 +140,11 @@ AI-generated asset without generation/source/license metadata
 Generated reports stay under ignored local report paths:
 
 ```text
-downloaded-assets/registry/reports/candidate-preflight-report.json
-downloaded-assets/registry/reports/candidate-license-review-report.json
-downloaded-assets/registry/reports/candidate-duplicate-report.json
-downloaded-assets/registry/reports/candidate-promotion-dry-run-report.json
-downloaded-assets/registry/reports/candidate-fixture-validation-report.json
+registry/reports/candidate-preflight-report.json
+registry/reports/candidate-license-review-report.json
+registry/reports/candidate-duplicate-report.json
+registry/reports/candidate-promotion-dry-run-report.json
+registry/reports/candidate-fixture-validation-report.json
 ```
 
 Do not commit generated report payloads unless the owner explicitly approves a
