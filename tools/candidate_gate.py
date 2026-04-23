@@ -22,7 +22,7 @@ from typing import Any, Dict, Iterable, List, Optional, Tuple
 
 
 TOOL_NAME = "ai-asset-contribution-gate"
-TOOL_VERSION = "v0.1.0"
+TOOL_VERSION = "v0.2.0"
 DEFAULT_REPOSITORY = "Kdreammaker/ai-asset-contribution-gate"
 
 ALLOWED_FORMATS = {
