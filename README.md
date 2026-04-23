@@ -1,6 +1,7 @@
-# assetctl Public Toolkit
+# AI Asset Contribution Safety Gate
 
-Public-safe starter toolkit for candidate-gated asset workspace workflows.
+Public-safe starter toolkit for reviewing user-submitted AI asset candidates
+before they can enter a private asset registry.
 
 This repository intentionally contains only reusable tooling, schemas,
 synthetic fixtures, and generic documentation. It does not contain real asset
@@ -14,7 +15,6 @@ tools/candidate_gate.py
 tools/candidate-gate.ps1
 schemas/candidate-record.schema.json
 schemas/operation-proposal.schema.json
-fixtures/candidates/*.fixture.json
 tools/fixtures/candidates/*.fixture.json
 docs/CANDIDATE_CONTRIBUTION_GATE.md
 docs/PUBLIC_TOOLKIT_CLI_DESIGN.md
