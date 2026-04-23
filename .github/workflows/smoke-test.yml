@@ -43,3 +43,4 @@ jobs:
             throw "Expected unapproved promotion to exit 1, got $LASTEXITCODE"
           }
           Write-Host "Unapproved promotion blocked as expected."
+          exit 0
