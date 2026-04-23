@@ -30,6 +30,10 @@ jobs:
         shell: pwsh
         run: .\tools\candidate-gate.ps1 -Operation validate-fixtures -AssetsRoot .
 
+      - name: Verify version command
+        shell: pwsh
+        run: .\tools\candidate-gate.ps1 -Operation version
+
       - name: Verify public-safe leak scan
         shell: pwsh
         run: .\tools\candidate-gate.ps1 -Operation leak-scan -Path .

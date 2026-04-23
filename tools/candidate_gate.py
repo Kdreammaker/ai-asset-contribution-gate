@@ -15,9 +15,15 @@ import json
 import os
 import re
 import sys
+import urllib.error
+import urllib.request
 from pathlib import Path
 from typing import Any, Dict, Iterable, List, Optional, Tuple
 
+
+TOOL_NAME = "ai-asset-contribution-gate"
+TOOL_VERSION = "v0.1.0"
+DEFAULT_REPOSITORY = "Kdreammaker/ai-asset-contribution-gate"
 
 ALLOWED_FORMATS = {
     ".svg",
@@ -726,6 +732,63 @@ def command_leak_scan(args: argparse.Namespace) -> Dict[str, Any]:
     return report
 
 
+def normalize_version(value: str) -> str:
+    text = str(value or "").strip()
+    if text.startswith("refs/tags/"):
+        text = text[len("refs/tags/"):]
+    return text
+
+
+def command_version(args: argparse.Namespace) -> Dict[str, Any]:
+    return {
+        "ok": True,
+        "operation_type": "version",
+        "tool_name": TOOL_NAME,
+        "version": TOOL_VERSION,
+        "repository": DEFAULT_REPOSITORY,
+    }
+
+
+def command_update_check(args: argparse.Namespace) -> Dict[str, Any]:
+    current_version = normalize_version(args.current_version or TOOL_VERSION)
+    repository = args.repository or DEFAULT_REPOSITORY
+    url = f"https://api.github.com/repos/{repository}/releases/latest"
+    request = urllib.request.Request(url, headers={"User-Agent": f"{TOOL_NAME}/{TOOL_VERSION}"})
+    try:
+        with urllib.request.urlopen(request, timeout=args.timeout_seconds) as response:
+            payload = json.loads(response.read().decode("utf-8"))
+    except (urllib.error.URLError, TimeoutError, json.JSONDecodeError) as exc:
+        return {
+            "ok": False,
+            "operation_type": "update_check",
+            "tool_name": TOOL_NAME,
+            "current_version": current_version,
+            "repository": repository,
+            "latest_version": "",
+            "update_available": False,
+            "errors": [str(exc)],
+        }
+
+    latest_version = normalize_version(payload.get("tag_name", ""))
+    latest_url = payload.get("html_url", "")
+    update_available = bool(latest_version and latest_version != current_version)
+    return {
+        "ok": True,
+        "operation_type": "update_check",
+        "tool_name": TOOL_NAME,
+        "current_version": current_version,
+        "repository": repository,
+        "latest_version": latest_version,
+        "latest_url": latest_url,
+        "update_available": update_available,
+        "message": (
+            f"Update available: {current_version} -> {latest_version}"
+            if update_available
+            else f"Current version is up to date: {current_version}"
+        ),
+    }
+
+
 def build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(description="B31-B candidate safety gate")
     subparsers = parser.add_subparsers(dest="operation", required=True)
@@ -773,6 +836,15 @@ def build_parser() -> argparse.ArgumentParser:
     leak_parser.add_argument("--path", required=True)
     leak_parser.add_argument("--output-path", default="")
     leak_parser.set_defaults(func=command_leak_scan)
+
+    version_parser = subparsers.add_parser("version")
+    version_parser.set_defaults(func=command_version)
+
+    update_parser = subparsers.add_parser("update-check")
+    update_parser.add_argument("--current-version", default=TOOL_VERSION)
+    update_parser.add_argument("--repository", default=DEFAULT_REPOSITORY)
+    update_parser.add_argument("--timeout-seconds", type=int, default=10)
+    update_parser.set_defaults(func=command_update_check)
 
     return parser
 

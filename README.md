@@ -49,6 +49,23 @@ From this repository root:
 The fixtures are synthetic and are designed to exercise the B31-B safety gate
 without exposing private asset metadata.
 
+## Version And Updates
+
+Show the local gate version:
+
+```powershell
+.\tools\candidate-gate.ps1 -Operation version
+```
+
+Check whether a newer public release is available:
+
+```powershell
+.\tools\candidate-gate.ps1 -Operation update-check
+```
+
+Normal commands remain offline by default. The update check is explicit and
+uses GitHub release metadata only when you run it.
+
 ## License
 
 Licensed under the Apache License, Version 2.0. See [LICENSE](LICENSE).

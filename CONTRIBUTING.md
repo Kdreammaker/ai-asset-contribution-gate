@@ -25,6 +25,7 @@ python -m json.tool .\schemas\candidate-record.schema.json
 python -m json.tool .\schemas\operation-proposal.schema.json
 .\tools\candidate-gate.ps1 -Operation validate-fixtures -AssetsRoot .
 .\tools\candidate-gate.ps1 -Operation leak-scan -Path .
+.\tools\candidate-gate.ps1 -Operation version
 ```
 
 The GitHub Actions smoke test runs the same core checks on pushes and pull

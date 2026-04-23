@@ -1,5 +1,5 @@
 param(
-    [ValidateSet('add', 'review', 'promote', 'validate-fixtures', 'leak-scan')]
+    [ValidateSet('add', 'review', 'promote', 'validate-fixtures', 'leak-scan', 'version', 'update-check')]
     [string]$Operation = 'review',
     [string]$AssetsRoot = (Resolve-Path (Join-Path $PSScriptRoot '..')).Path,
     [string]$File = '',
@@ -20,6 +20,9 @@ param(
     [string]$IntendedUse = '',
     [string]$Notes = '',
     [string]$ActorRole = 'user',
+    [string]$CurrentVersion = '',
+    [string]$Repository = '',
+    [int]$TimeoutSeconds = 10,
     [switch]$Apply,
     [switch]$Approve
 )
@@ -30,7 +33,7 @@ $python = (Get-Command python -ErrorAction Stop).Source
 $script = Join-Path $PSScriptRoot 'candidate_gate.py'
 $argsList = @($script, $Operation)
 
-if ($Operation -ne 'leak-scan') {
+if ($Operation -notin @('leak-scan', 'version', 'update-check')) {
     $argsList += @('--assets-root', $AssetsRoot)
 }
 if (-not [string]::IsNullOrWhiteSpace($OutputPath)) { $argsList += @('--output-path', $OutputPath) }
@@ -68,6 +71,13 @@ switch ($Operation) {
             throw 'leak-scan requires -Path.'
         }
         $argsList += @('--path', $Path)
+    }
+    'version' {
+    }
+    'update-check' {
+        if (-not [string]::IsNullOrWhiteSpace($CurrentVersion)) { $argsList += @('--current-version', $CurrentVersion) }
+        if (-not [string]::IsNullOrWhiteSpace($Repository)) { $argsList += @('--repository', $Repository) }
+        $argsList += @('--timeout-seconds', ([string]$TimeoutSeconds))
     }
 }
 
