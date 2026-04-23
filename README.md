@@ -51,5 +51,4 @@ without exposing private asset metadata.
 
 ## License
 
-The owner has not selected a public reuse license yet. Until a license is
-chosen, treat the repository as source-available only.
+Licensed under the Apache License, Version 2.0. See [LICENSE](LICENSE).
