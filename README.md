@@ -15,9 +15,12 @@ approval records, connector evidence, or local machine paths.
 ```text
 tools/candidate_gate.py
 tools/candidate-gate.ps1
+tools/vector_index.py
+tools/vector-index.ps1
 schemas/candidate-record.schema.json
 schemas/operation-proposal.schema.json
 tools/fixtures/candidates/*.fixture.json
+tools/fixtures/vector-assets.fixture.jsonl
 docs/CANDIDATE_CONTRIBUTION_GATE.md
 docs/PUBLIC_TOOLKIT_CLI_DESIGN.md
 ```
@@ -65,6 +68,24 @@ Check whether a newer public release is available:
 
 Normal commands remain offline by default. The update check is explicit and
 uses GitHub release metadata only when you run it.
+
+## Local Vector Index
+
+Build a local sparse vector index from your own public-safe asset metadata:
+
+```powershell
+.\tools\vector-index.ps1 -Operation build -InputPath ".\my-assets.jsonl" -OutputPath ".\reports\my-vector-index.json"
+```
+
+Query it:
+
+```powershell
+.\tools\vector-index.ps1 -Operation query -IndexPath ".\reports\my-vector-index.json" -Query "dashboard security icon" -AssetType icon
+```
+
+This is not an external Vector DB and does not call an embedding API. It is a
+small offline TF-IDF vector layer that complements registry policy checks and
+graph/relationship exploration in private workspaces.
 
 ## License
 

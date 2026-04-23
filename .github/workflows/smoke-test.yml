@@ -18,7 +18,7 @@ jobs:
 
       - name: Compile Python gate
         shell: pwsh
-        run: python -m py_compile .\tools\candidate_gate.py
+        run: python -m py_compile .\tools\candidate_gate.py .\tools\vector_index.py
 
       - name: Validate JSON schemas
         shell: pwsh
@@ -33,6 +33,10 @@ jobs:
       - name: Verify version command
         shell: pwsh
         run: .\tools\candidate-gate.ps1 -Operation version
+
+      - name: Verify local vector index fixtures
+        shell: pwsh
+        run: .\tools\vector-index.ps1 -Operation validate-fixtures
 
       - name: Verify public-safe leak scan
         shell: pwsh
