@@ -1,5 +1,7 @@
 # AI Asset Contribution Safety Gate
 
+[![Smoke Test](https://github.com/Kdreammaker/ai-asset-contribution-gate/actions/workflows/smoke-test.yml/badge.svg)](https://github.com/Kdreammaker/ai-asset-contribution-gate/actions/workflows/smoke-test.yml)
+
 Public-safe starter toolkit for reviewing user-submitted AI asset candidates
 before they can enter a private asset registry.
 

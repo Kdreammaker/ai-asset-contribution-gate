@@ -1,0 +1,44 @@
+name: Smoke Test
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  candidate-gate:
+    runs-on: windows-latest
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.x'
+
+      - name: Compile Python gate
+        shell: pwsh
+        run: python -m py_compile .\tools\candidate_gate.py
+
+      - name: Validate JSON schemas
+        shell: pwsh
+        run: |
+          python -m json.tool .\schemas\candidate-record.schema.json | Out-Null
+          python -m json.tool .\schemas\operation-proposal.schema.json | Out-Null
+
+      - name: Validate synthetic safety fixtures
+        shell: pwsh
+        run: .\tools\candidate-gate.ps1 -Operation validate-fixtures -AssetsRoot .
+
+      - name: Verify public-safe leak scan
+        shell: pwsh
+        run: .\tools\candidate-gate.ps1 -Operation leak-scan -Path .
+
+      - name: Verify unapproved promotion is blocked
+        shell: pwsh
+        run: |
+          .\tools\candidate-gate.ps1 -Operation promote -InputPath '.\tools\fixtures\candidates\promotion-unapproved.fixture.json' -ActorRole user -Approve
+          if ($LASTEXITCODE -ne 1) {
+            throw "Expected unapproved promotion to exit 1, got $LASTEXITCODE"
+          }
+          Write-Host "Unapproved promotion blocked as expected."
