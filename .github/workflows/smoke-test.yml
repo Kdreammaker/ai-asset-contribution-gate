@@ -37,6 +37,7 @@ jobs:
       - name: Verify unapproved promotion is blocked
         shell: pwsh
         run: |
+          $PSNativeCommandUseErrorActionPreference = $false
           .\tools\candidate-gate.ps1 -Operation promote -InputPath '.\tools\fixtures\candidates\promotion-unapproved.fixture.json' -ActorRole user -Approve
           if ($LASTEXITCODE -ne 1) {
             throw "Expected unapproved promotion to exit 1, got $LASTEXITCODE"
