@@ -689,6 +689,9 @@ def command_leak_scan(args: argparse.Namespace) -> Dict[str, Any]:
         "registry",
         "reports",
     }
+    skipped_files = {
+        ".assetctl-private-connector.local.json",
+    }
     patterns = {
         "local_absolute_path": re.compile(r"([A-Za-z]:\\Users\\|/Users/|\\\\[^\\]+\\[^\\]+)"),
         "drive_url": re.compile(r"https://drive\.google\.com/|drive_file_id|drive_folder_id", re.I),
@@ -705,6 +708,7 @@ def command_leak_scan(args: argparse.Namespace) -> Dict[str, Any]:
             item
             for item in target.rglob("*")
             if item.is_file()
+            and item.name.lower() not in skipped_files
             and item.suffix.lower() in {".md", ".json", ".jsonl", ".ps1", ".py", ".yml", ".yaml", ".txt"}
             and not any(part.lower() in skipped_dirs for part in item.relative_to(target).parts[:-1])
         ]

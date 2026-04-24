@@ -17,6 +17,7 @@ tools/candidate_gate.py
 tools/candidate-gate.ps1
 tools/vector_index.py
 tools/vector-index.ps1
+tools/setup-private-connector.ps1
 tools/connector_client.py
 tools/connector-client.ps1
 schemas/candidate-record.schema.json
@@ -28,6 +29,7 @@ fixtures/connector/*.json
 fixtures/connector/public-cli-assets.fixture.jsonl
 docs/CANDIDATE_CONTRIBUTION_GATE.md
 docs/PUBLIC_TOOLKIT_CLI_DESIGN.md
+docs/PRIVATE_WORKSPACE_CONNECTOR_SETUP.md
 ```
 
 ## Safety Defaults
@@ -111,6 +113,28 @@ file that the private workspace gives you:
 
 The connector client does not contain real assets, private manifests, private
 storage references, approval evidence, or generated private reports.
+
+## Private Workspace Setup For AI Agents
+
+When an AI agent installs this public toolkit and needs real asset search or
+approved asset export, connect it to the private workspace instead of copying
+private data into this repo:
+
+```powershell
+.\tools\setup-private-connector.ps1 -PrivateWorkspaceRoot "<path-to-private-workspace>"
+```
+
+This creates ignored local config at:
+
+```text
+.assetctl-private-connector.local.json
+```
+
+After setup, use the public toolkit to create and validate public-safe requests,
+then use the private workspace `downloaded-assets\tools\assetctl.ps1` connector
+commands for real metadata search, materialization proposals, and approved
+package or PPTX export. See
+[`docs/PRIVATE_WORKSPACE_CONNECTOR_SETUP.md`](docs/PRIVATE_WORKSPACE_CONNECTOR_SETUP.md).
 
 ## License
 

@@ -82,6 +82,17 @@ connector readiness files are present only when enabled
 
 It must not copy private registry state into the toolkit install location.
 
+Current public toolkit bridge:
+
+```powershell
+.\tools\setup-private-connector.ps1 -PrivateWorkspaceRoot "<path-to-private-workspace>"
+```
+
+The bridge writes only ignored local connector config and validates that the
+private workspace exposes the connector runtime. It is the default setup path
+for AI agents that install the public repo and then need real private asset
+search or approval-gated materialization.
+
 ### `assetctl doctor`
 
 Diagnoses local readiness.
