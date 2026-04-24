@@ -1,0 +1,18 @@
+{
+  "schema_version": "1.0",
+  "request_id": "public-fixture-search-001",
+  "request_type": "asset_search",
+  "query": "Korean B2B pitch deck calm blue KPI timeline icons",
+  "intent": "Find presentation-safe palette, icon, and deck component candidates.",
+  "locale": "ko-KR",
+  "asset_types": ["palette", "icon", "deck_component"],
+  "filters": {
+    "risk_levels": ["low", "medium"],
+    "usage_groups": ["presentation"]
+  },
+  "delivery": {
+    "mode": "metadata_only",
+    "include_private_storage_refs": false
+  },
+  "limit": 8
+}

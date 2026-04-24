@@ -1,0 +1,21 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://example.invalid/ai-asset-connector/deck-generation-response.schema.json",
+  "title": "Public Deck Generation Response",
+  "type": "object",
+  "additionalProperties": true,
+  "required": ["ok", "schema_version", "response_id", "request_id", "status", "pptx_created"],
+  "properties": {
+    "ok": { "type": "boolean" },
+    "schema_version": { "const": "1.0" },
+    "response_id": { "type": "string", "minLength": 1 },
+    "request_id": { "type": "string", "minLength": 1 },
+    "operation_type": { "type": "string" },
+    "status": { "type": "string" },
+    "pptx_created": { "type": "boolean" },
+    "selected_components": { "type": "array", "items": { "type": "object", "additionalProperties": true } },
+    "selected_palettes": { "type": "array", "items": { "type": "object", "additionalProperties": true } },
+    "selected_icons": { "type": "array", "items": { "type": "object", "additionalProperties": true } },
+    "next_steps": { "type": "array", "items": { "type": "string" } }
+  }
+}

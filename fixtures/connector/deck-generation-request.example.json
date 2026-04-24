@@ -1,0 +1,14 @@
+{
+  "schema_version": "1.0",
+  "request_id": "public-fixture-deck-001",
+  "request_type": "deck_generation_dry_run",
+  "query": "Korean B2B SaaS pitch deck calm blue KPI timeline roadmap",
+  "deck": {
+    "audience": "enterprise buyer",
+    "language": "ko-KR",
+    "slide_count": 10,
+    "tone": "calm and executive",
+    "preferred_palette": "calm blue",
+    "required_sections": ["title", "problem", "solution", "KPI", "roadmap", "pricing"]
+  }
+}

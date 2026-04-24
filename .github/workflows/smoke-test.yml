@@ -18,13 +18,16 @@ jobs:
 
       - name: Compile Python gate
         shell: pwsh
-        run: python -m py_compile .\tools\candidate_gate.py .\tools\vector_index.py
+        run: python -m py_compile .\tools\candidate_gate.py .\tools\vector_index.py .\tools\connector_client.py
 
       - name: Validate JSON schemas
         shell: pwsh
         run: |
           python -m json.tool .\schemas\candidate-record.schema.json | Out-Null
           python -m json.tool .\schemas\operation-proposal.schema.json | Out-Null
+          Get-ChildItem .\schemas\connector -Filter *.schema.json | ForEach-Object {
+            python -m json.tool $_.FullName | Out-Null
+          }
 
       - name: Validate synthetic safety fixtures
         shell: pwsh
@@ -37,6 +40,10 @@ jobs:
       - name: Verify local vector index fixtures
         shell: pwsh
         run: .\tools\vector-index.ps1 -Operation validate-fixtures
+
+      - name: Verify connector client fixtures
+        shell: pwsh
+        run: .\tools\connector-client.ps1 -Operation validate-fixtures
 
       - name: Verify public-safe leak scan
         shell: pwsh

@@ -1,0 +1,50 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://example.invalid/ai-asset-connector/asset-response.schema.json",
+  "title": "Public Asset Connector Response",
+  "type": "object",
+  "additionalProperties": true,
+  "required": ["ok", "schema_version", "response_id", "request_id", "operation_type", "results"],
+  "properties": {
+    "ok": { "type": "boolean" },
+    "schema_version": { "const": "1.0" },
+    "response_id": { "type": "string", "minLength": 1 },
+    "request_id": { "type": "string", "minLength": 1 },
+    "operation_type": { "type": "string" },
+    "created_at": { "type": "string" },
+    "policy_decision": {
+      "type": "object",
+      "additionalProperties": true,
+      "properties": {
+        "status": { "type": "string" },
+        "materialization_status": { "type": "string" },
+        "approval_required_for_binary_release": { "type": "boolean" }
+      }
+    },
+    "result_count": { "type": "integer", "minimum": 0 },
+    "results": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": true,
+        "properties": {
+          "export_item_id": { "type": ["string", "null"] },
+          "export_item_type": { "type": ["string", "null"] },
+          "asset_type": { "type": ["string", "null"] },
+          "name": { "type": ["string", "null"] },
+          "relative_path": { "type": "string" },
+          "policy_notes": { "type": "array", "items": { "type": "string" } },
+          "private_storage_ref_redacted": { "type": "boolean" }
+        }
+      }
+    },
+    "audit": {
+      "type": "object",
+      "additionalProperties": true,
+      "properties": {
+        "request_hash": { "type": "string" },
+        "report_path": { "type": "string" }
+      }
+    }
+  }
+}

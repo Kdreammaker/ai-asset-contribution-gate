@@ -1,0 +1,50 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://example.invalid/ai-asset-connector/asset-request.schema.json",
+  "title": "Public Asset Connector Request",
+  "type": "object",
+  "additionalProperties": true,
+  "required": ["schema_version", "request_id", "request_type"],
+  "properties": {
+    "schema_version": { "const": "1.0" },
+    "request_id": { "type": "string", "minLength": 1 },
+    "request_type": {
+      "type": "string",
+      "enum": ["asset_search", "asset_resolve", "manifest_export", "deck_generation_dry_run"]
+    },
+    "query": { "type": "string" },
+    "intent": { "type": "string" },
+    "locale": { "type": "string" },
+    "asset_types": {
+      "type": "array",
+      "items": { "type": "string" }
+    },
+    "requested_item_ids": {
+      "type": "array",
+      "items": { "type": "string" }
+    },
+    "filters": {
+      "type": "object",
+      "additionalProperties": true,
+      "properties": {
+        "asset_types": { "type": "array", "items": { "type": "string" } },
+        "export_item_types": { "type": "array", "items": { "type": "string" } },
+        "risk_levels": { "type": "array", "items": { "type": "string" } },
+        "usage_groups": { "type": "array", "items": { "type": "string" } },
+        "source_names": { "type": "array", "items": { "type": "string" } }
+      }
+    },
+    "delivery": {
+      "type": "object",
+      "additionalProperties": true,
+      "properties": {
+        "mode": {
+          "type": "string",
+          "enum": ["metadata_only", "manifest_only", "materialization_proposal"]
+        },
+        "include_private_storage_refs": { "const": false }
+      }
+    },
+    "limit": { "type": "integer", "minimum": 0, "maximum": 100 }
+  }
+}

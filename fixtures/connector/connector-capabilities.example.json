@@ -1,0 +1,24 @@
+{
+  "schema_version": "1.0",
+  "connector_id": "public-fixture-connector",
+  "runtime_type": "local_private_cli_adapter",
+  "commands": [
+    "connector-capabilities",
+    "connector-search",
+    "connector-resolve",
+    "connector-export",
+    "connector-build-ppt-dry-run"
+  ],
+  "request_types": [
+    "asset_search",
+    "asset_resolve",
+    "manifest_export",
+    "deck_generation_dry_run"
+  ],
+  "delivery_modes": ["metadata_only", "manifest_only", "materialization_proposal"],
+  "default_delivery_mode": "metadata_only",
+  "safety_constraints": [
+    "No real asset payloads are stored in the public toolkit.",
+    "Private storage materialization is proposal-first and approval-gated."
+  ]
+}

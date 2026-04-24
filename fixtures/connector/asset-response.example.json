@@ -1,0 +1,29 @@
+{
+  "ok": true,
+  "schema_version": "1.0",
+  "response_id": "resp:public-fixture-search-001",
+  "request_id": "public-fixture-search-001",
+  "operation_type": "connector_search",
+  "created_at": "2026-04-24T00:00:00Z",
+  "policy_decision": {
+    "status": "allowed_metadata_only",
+    "materialization_status": "proposal_required_for_payloads",
+    "approval_required_for_binary_release": true
+  },
+  "result_count": 1,
+  "results": [
+    {
+      "export_item_id": "deck_module:fixture-kpi-card",
+      "export_item_type": "deck_template_module",
+      "asset_type": "deck_component",
+      "name": "fixture-kpi-card",
+      "relative_path": "templates/modules/fixture-kpi-card.module.json",
+      "policy_notes": ["template_contract_only_no_source_content"],
+      "private_storage_ref_redacted": true
+    }
+  ],
+  "audit": {
+    "request_hash": "request-sha256:fixture",
+    "report_path": "reports/connector-search-latest.json"
+  }
+}

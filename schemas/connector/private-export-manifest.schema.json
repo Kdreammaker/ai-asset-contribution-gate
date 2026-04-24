@@ -1,0 +1,29 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://example.invalid/ai-asset-connector/private-export-manifest.schema.json",
+  "title": "Public-Safe Private Export Manifest Shape",
+  "type": "object",
+  "additionalProperties": true,
+  "required": ["schema_version", "manifest_id", "export_status", "approval", "items"],
+  "properties": {
+    "schema_version": { "const": "1.0" },
+    "manifest_id": { "type": "string", "minLength": 1 },
+    "request_id": { "type": "string" },
+    "created_at": { "type": "string" },
+    "export_status": { "type": "string" },
+    "approval": {
+      "type": "object",
+      "additionalProperties": true,
+      "required": ["status"],
+      "properties": {
+        "status": { "type": "string", "enum": ["proposed", "approved", "rejected", "draft"] },
+        "required_before_materialization": { "type": "boolean" }
+      }
+    },
+    "summary": { "type": "object", "additionalProperties": true },
+    "items": {
+      "type": "array",
+      "items": { "type": "object", "additionalProperties": true }
+    }
+  }
+}

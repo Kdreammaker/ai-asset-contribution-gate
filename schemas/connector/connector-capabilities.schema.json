@@ -1,0 +1,18 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://example.invalid/ai-asset-connector/connector-capabilities.schema.json",
+  "title": "Public Connector Capabilities",
+  "type": "object",
+  "additionalProperties": true,
+  "required": ["schema_version", "connector_id", "runtime_type", "commands", "delivery_modes", "safety_constraints"],
+  "properties": {
+    "schema_version": { "const": "1.0" },
+    "connector_id": { "type": "string", "minLength": 1 },
+    "runtime_type": { "type": "string" },
+    "commands": { "type": "array", "items": { "type": "string" } },
+    "request_types": { "type": "array", "items": { "type": "string" } },
+    "delivery_modes": { "type": "array", "items": { "type": "string" } },
+    "default_delivery_mode": { "type": "string" },
+    "safety_constraints": { "type": "array", "items": { "type": "string" } }
+  }
+}
