@@ -2,8 +2,12 @@
 
 [![Smoke Test](https://github.com/Kdreammaker/ai-asset-contribution-gate/actions/workflows/smoke-test.yml/badge.svg)](https://github.com/Kdreammaker/ai-asset-contribution-gate/actions/workflows/smoke-test.yml)
 
-Public-safe starter toolkit for reviewing user-submitted AI asset candidates
-before they can enter a private asset registry.
+Public-safe starter toolkit and connector client for AI agents that need a
+governed asset service. It can review user-submitted asset candidates before
+they enter a private registry, and it can create public-safe requests for a
+private asset backend that serves metadata, recommendations, and approved
+export packages to creator systems such as website builders and presentation
+generators.
 
 This repository intentionally contains only reusable tooling, schemas,
 synthetic fixtures, and generic documentation. It does not contain real asset
@@ -30,6 +34,7 @@ fixtures/connector/public-cli-assets.fixture.jsonl
 docs/CANDIDATE_CONTRIBUTION_GATE.md
 docs/PUBLIC_TOOLKIT_CLI_DESIGN.md
 docs/PRIVATE_WORKSPACE_CONNECTOR_SETUP.md
+docs/ASSET_SERVICE_HANDOFF_FOR_CREATOR_AI.md
 ```
 
 ## Safety Defaults
@@ -100,7 +105,7 @@ Build and validate public-safe requests for a private asset backend:
 
 ```powershell
 .\tools\connector-client.ps1 -Operation validate-fixtures
-.\tools\connector-client.ps1 -Operation new-request -Query "Korean B2B pitch deck calm blue KPI" -AssetTypes "palette,icon,deck_component" -OutputPath ".\reports\connector-request.json"
+.\tools\connector-client.ps1 -Operation new-request -Query "Korean capital market reform briefing assets: KOSPI KOSDAQ chart modules, finance icons, restrained executive palette" -AssetTypes "palette,icon,deck_component,font" -OutputPath ".\reports\connector-request.json"
 .\tools\connector-client.ps1 -Operation validate-request -InputPath ".\reports\connector-request.json"
 ```
 
@@ -135,6 +140,9 @@ then use the private workspace `downloaded-assets\tools\assetctl.ps1` connector
 commands for real metadata search, materialization proposals, and approved
 package or PPTX export. See
 [`docs/PRIVATE_WORKSPACE_CONNECTOR_SETUP.md`](docs/PRIVATE_WORKSPACE_CONNECTOR_SETUP.md).
+
+For a creator AI handoff, start with
+[`docs/ASSET_SERVICE_HANDOFF_FOR_CREATOR_AI.md`](docs/ASSET_SERVICE_HANDOFF_FOR_CREATOR_AI.md).
 
 ## License
 

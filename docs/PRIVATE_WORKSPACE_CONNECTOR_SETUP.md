@@ -65,7 +65,7 @@ publish generated reports
 Create a public-safe request:
 
 ```powershell
-.\tools\connector-client.ps1 -Operation new-request -Query "Korean B2B pitch deck calm blue KPI" -AssetTypes "palette,icon,deck_component" -OutputPath ".\reports\connector-request.json"
+.\tools\connector-client.ps1 -Operation new-request -Query "Korean capital market reform briefing assets: KOSPI KOSDAQ finance chart modules, timeline icons, executive palette, Korean fonts" -AssetTypes "palette,icon,deck_component,font" -OutputPath ".\reports\connector-request.json"
 .\tools\connector-client.ps1 -Operation validate-request -InputPath ".\reports\connector-request.json"
 ```
 

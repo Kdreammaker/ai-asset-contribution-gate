@@ -9,16 +9,38 @@
     "required_before_materialization": true
   },
   "summary": {
-    "item_count": 1,
+    "item_count": 4,
     "counts_by_asset_type": {
-      "deck_component": 1
-    }
+      "deck_component": 1,
+      "icon": 1,
+      "palette": 1,
+      "font": 1
+    },
+    "service_snapshot_note": "Synthetic fixture. The live private backend currently exposes a public-safe summary of 50,572 metadata export items, including 13,675 deck_component records."
   },
   "items": [
     {
       "export_item_id": "deck_module:fixture-kpi-card",
       "asset_type": "deck_component",
       "relative_path": "templates/modules/fixture-kpi-card.module.json",
+      "private_storage_ref_redacted": true
+    },
+    {
+      "export_item_id": "asset:fixture-finance-chart-icon",
+      "asset_type": "icon",
+      "relative_path": "approved/recommended-assets/icons/open-source/tabler-icons/icons/filled/chart-area-line.svg",
+      "private_storage_ref_redacted": true
+    },
+    {
+      "export_item_id": "asset:fixture-executive-palette",
+      "asset_type": "palette",
+      "relative_path": "",
+      "private_storage_ref_redacted": true
+    },
+    {
+      "export_item_id": "asset:fixture-korean-font",
+      "asset_type": "font",
+      "relative_path": "approved/recommended-assets/fonts/pretendard/public/static/Pretendard-Regular.otf",
       "private_storage_ref_redacted": true
     }
   ]
