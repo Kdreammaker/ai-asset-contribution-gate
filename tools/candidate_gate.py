@@ -22,7 +22,7 @@ from typing import Any, Dict, Iterable, List, Optional, Tuple
 
 
 TOOL_NAME = "ai-asset-contribution-gate"
-TOOL_VERSION = "v0.3.1"
+TOOL_VERSION = "v0.3.2"
 DEFAULT_REPOSITORY = "Kdreammaker/ai-asset-contribution-gate"
 
 ALLOWED_FORMATS = {
@@ -743,6 +743,13 @@ def normalize_version(value: str) -> str:
     return text
 
 
+def parse_semver_tag(value: str) -> Optional[Tuple[int, int, int]]:
+    match = re.fullmatch(r"v?(\d+)\.(\d+)\.(\d+)", normalize_version(value))
+    if not match:
+        return None
+    return tuple(int(part) for part in match.groups())
+
+
 def command_version(args: argparse.Namespace) -> Dict[str, Any]:
     return {
         "ok": True,
@@ -775,7 +782,22 @@ def command_update_check(args: argparse.Namespace) -> Dict[str, Any]:
 
     latest_version = normalize_version(payload.get("tag_name", ""))
     latest_url = payload.get("html_url", "")
-    update_available = bool(latest_version and latest_version != current_version)
+    current_semver = parse_semver_tag(current_version)
+    latest_semver = parse_semver_tag(latest_version)
+    if current_semver is not None and latest_semver is not None:
+        update_available = latest_semver > current_semver
+        message = (
+            f"Update available: {current_version} -> {latest_version}"
+            if update_available
+            else f"Current version is at or ahead of latest release: {current_version}"
+        )
+    else:
+        update_available = bool(latest_version and latest_version != current_version)
+        message = (
+            f"Update available: {current_version} -> {latest_version}"
+            if update_available
+            else f"Current version is up to date: {current_version}"
+        )
     return {
         "ok": True,
         "operation_type": "update_check",
@@ -785,11 +807,7 @@ def command_update_check(args: argparse.Namespace) -> Dict[str, Any]:
         "latest_version": latest_version,
         "latest_url": latest_url,
         "update_available": update_available,
-        "message": (
-            f"Update available: {current_version} -> {latest_version}"
-            if update_available
-            else f"Current version is up to date: {current_version}"
-        ),
+        "message": message,
     }
 
 
