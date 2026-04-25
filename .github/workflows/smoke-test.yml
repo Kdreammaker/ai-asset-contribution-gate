@@ -20,6 +20,10 @@ jobs:
         shell: pwsh
         run: python -m py_compile .\tools\candidate_gate.py .\tools\vector_index.py .\tools\connector_client.py
 
+      - name: Validate extension manifest
+        shell: pwsh
+        run: python -m json.tool .\assetctl-extension.json | Out-Null
+
       - name: Validate JSON schemas
         shell: pwsh
         run: |
@@ -44,6 +48,14 @@ jobs:
       - name: Verify connector client fixtures
         shell: pwsh
         run: .\tools\connector-client.ps1 -Operation validate-fixtures
+
+      - name: Verify public bootstrap
+        shell: pwsh
+        run: .\tools\bootstrap-workspace.ps1 -SkipUpdateCheck
+
+      - name: Verify public doctor
+        shell: pwsh
+        run: .\tools\assetctl-doctor.ps1
 
       - name: Verify public-safe leak scan
         shell: pwsh

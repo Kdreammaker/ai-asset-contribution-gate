@@ -12,10 +12,29 @@ param(
     [string]$AssetTypes = '',
     [string]$AssetType = '',
     [string]$DeliveryMode = 'metadata_only',
-    [int]$Limit = 10
+    [int]$Limit = 10,
+    [switch]$CheckUpdates
 )
 
 $ErrorActionPreference = 'Stop'
+
+if ($CheckUpdates) {
+    try {
+        $updateText = & (Join-Path $PSScriptRoot 'candidate-gate.ps1') -Operation update-check 2>&1
+        if ($LASTEXITCODE -eq 0) {
+            $update = ($updateText -join [Environment]::NewLine) | ConvertFrom-Json
+            if ($update.update_available) {
+                Write-Warning "A newer public toolkit release is available: $($update.latest_version). Current connector command will continue."
+            }
+        }
+        else {
+            Write-Warning "Update check failed with exit code $LASTEXITCODE. Current connector command will continue."
+        }
+    }
+    catch {
+        Write-Warning "Update check failed: $($_.Exception.Message). Current connector command will continue."
+    }
+}
 
 $python = (Get-Command python -ErrorAction Stop).Source
 $script = Join-Path $PSScriptRoot 'connector_client.py'

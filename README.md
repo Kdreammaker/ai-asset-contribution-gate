@@ -24,11 +24,14 @@ scoped access key, or controlled proxy.
 ```text
 tools/candidate_gate.py
 tools/candidate-gate.ps1
+tools/bootstrap-workspace.ps1
+tools/assetctl-doctor.ps1
 tools/vector_index.py
 tools/vector-index.ps1
 tools/setup-private-connector.ps1
 tools/connector_client.py
 tools/connector-client.ps1
+assetctl-extension.json
 schemas/candidate-record.schema.json
 schemas/operation-proposal.schema.json
 schemas/connector/*.schema.json
@@ -63,11 +66,16 @@ step.
 From this repository root:
 
 ```powershell
+.\tools\bootstrap-workspace.ps1
+.\tools\assetctl-doctor.ps1
 .\tools\candidate-gate.ps1 -Operation validate-fixtures -AssetsRoot .
 ```
 
-The fixtures are synthetic and are designed to exercise the B31-B safety gate
-without exposing private asset metadata.
+The bootstrap command creates only ignored local runtime folders such as
+`reports/` and `.assetctl/`, then runs fixture validation, connector fixture
+validation, leak scan, version, and a soft update check. The fixtures are
+synthetic and are designed to exercise the safety gate without exposing private
+asset metadata.
 
 ## Version And Updates
 
@@ -84,7 +92,9 @@ Check whether a newer public release is available:
 ```
 
 Normal commands remain offline by default. The update check is explicit and
-uses GitHub release metadata only when you run it.
+uses GitHub release metadata only when you run it. Connector and private setup
+wrappers also accept `-CheckUpdates` for a non-blocking warning before major
+connector operations.
 
 ## Local Vector Index
 
@@ -110,7 +120,7 @@ Build and validate public-safe requests for a private asset backend:
 
 ```powershell
 .\tools\connector-client.ps1 -Operation validate-fixtures
-.\tools\connector-client.ps1 -Operation new-request -Query "Korean capital market reform briefing assets: KOSPI KOSDAQ chart modules, finance icons, restrained executive palette" -AssetTypes "palette,icon,deck_component,font" -OutputPath ".\reports\connector-request.json"
+.\tools\connector-client.ps1 -Operation new-request -CheckUpdates -Query "Korean capital market reform briefing assets: KOSPI KOSDAQ chart modules, finance icons, restrained executive palette" -AssetTypes "palette,icon,deck_component,font" -OutputPath ".\reports\connector-request.json"
 .\tools\connector-client.ps1 -Operation validate-request -InputPath ".\reports\connector-request.json"
 ```
 
@@ -134,7 +144,7 @@ of copying private data into this repo or exposing raw private workspace paths t
 untrusted agents:
 
 ```powershell
-.\tools\setup-private-connector.ps1 -PrivateWorkspaceRoot "<path-to-private-workspace>"
+.\tools\setup-private-connector.ps1 -PrivateWorkspaceRoot "<owner-approved-private-workspace>" -CheckUpdates
 ```
 
 This creates ignored local config at:
@@ -143,12 +153,22 @@ This creates ignored local config at:
 .assetctl-private-connector.local.json
 ```
 
-After setup, use the public toolkit to create and validate public-safe requests,
-then use the private workspace `downloaded-assets\tools\assetctl.ps1` connector
-commands for real metadata search, materialization proposals, and approved
-package or output-specific export. Non-internal callers should receive redacted
-connector responses and opaque result IDs when that backend mode is enabled; raw
-private identifiers remain private-backend material. See
+The command does not auto-clone a private repository and does not guess private
+paths by default. Local maintainers must pass the private workspace path
+explicitly; untrusted or external callers should use owner-provided scoped proxy
+metadata instead:
+
+```powershell
+.\tools\setup-private-connector.ps1 -ConnectorMode external-safe-proxy -ConnectorProxyUrl "<owner-provided-proxy-url>" -AccessKeyId "<key-id-only>" -CheckUpdates
+```
+
+Do not store access-key secrets in this public repo. After setup, use the public
+toolkit to create and validate public-safe requests, then use the private
+workspace `downloaded-assets\tools\assetctl.ps1` connector commands or the
+owner-provided proxy for real metadata search, materialization proposals, and
+approved package or output-specific export. Non-internal callers should receive
+redacted connector responses and opaque result IDs when that backend mode is
+enabled; raw private identifiers remain private-backend material. See
 [`docs/PRIVATE_WORKSPACE_CONNECTOR_SETUP.md`](docs/PRIVATE_WORKSPACE_CONNECTOR_SETUP.md).
 
 For a creator AI handoff, start with

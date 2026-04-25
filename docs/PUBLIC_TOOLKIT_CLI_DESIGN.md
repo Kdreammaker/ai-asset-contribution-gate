@@ -85,13 +85,18 @@ It must not copy private registry state into the toolkit install location.
 Current public toolkit bridge:
 
 ```powershell
-.\tools\setup-private-connector.ps1 -PrivateWorkspaceRoot "<path-to-private-workspace>"
+.\tools\bootstrap-workspace.ps1
+.\tools\assetctl-doctor.ps1
+.\tools\setup-private-connector.ps1 -PrivateWorkspaceRoot "<owner-approved-private-workspace>" -CheckUpdates
 ```
 
 The bridge writes only ignored local connector config and validates that the
 private workspace exposes the connector runtime. It is the default setup path
-for AI agents that install the public repo and then need real private asset
-search or approval-gated materialization.
+for local maintainers that install the public repo and then need real private
+asset search or approval-gated materialization. It must not auto-clone the
+private repo or guess private paths by default. External-safe attachment uses
+owner-provided proxy metadata or a scoped access-key identifier without storing
+access-key secrets in the public repo.
 
 ### `assetctl doctor`
 

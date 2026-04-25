@@ -4,6 +4,7 @@ __pycache__/
 /registry/
 /candidates/
 /reports/
+/.assetctl/
 *.tmp
 *.log
 .assetctl-private-connector.local.json

@@ -22,7 +22,7 @@ from typing import Any, Dict, Iterable, List, Optional, Tuple
 
 
 TOOL_NAME = "ai-asset-contribution-gate"
-TOOL_VERSION = "v0.3.2"
+TOOL_VERSION = "v0.3.3"
 DEFAULT_REPOSITORY = "Kdreammaker/ai-asset-contribution-gate"
 
 ALLOWED_FORMATS = {
@@ -685,6 +685,7 @@ def command_leak_scan(args: argparse.Namespace) -> Dict[str, Any]:
         ".git",
         "__pycache__",
         ".pytest_cache",
+        ".assetctl",
         "candidates",
         "registry",
         "reports",

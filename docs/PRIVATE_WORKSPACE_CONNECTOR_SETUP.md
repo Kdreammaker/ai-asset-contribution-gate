@@ -33,8 +33,25 @@ of sharing the raw private workspace path.
 From the public toolkit root:
 
 ```powershell
-.\tools\setup-private-connector.ps1 -PrivateWorkspaceRoot "<path-to-private-workspace>"
+.\tools\bootstrap-workspace.ps1
+.\tools\assetctl-doctor.ps1
+.\tools\setup-private-connector.ps1 -PrivateWorkspaceRoot "<owner-approved-private-workspace>" -CheckUpdates
 ```
+
+`setup-private-connector.ps1` no longer guesses a sibling private workspace by
+default. A local maintainer may opt in to sibling inference for their own
+machine by passing `-AllowSiblingInference`, but automation should pass
+`-PrivateWorkspaceRoot` explicitly.
+
+For external or untrusted agents, use owner-provided proxy metadata instead of a
+raw private path:
+
+```powershell
+.\tools\setup-private-connector.ps1 -ConnectorMode external-safe-proxy -ConnectorProxyUrl "<owner-provided-proxy-url>" -AccessKeyId "<key-id-only>" -CheckUpdates
+```
+
+Do not store access-key secrets in this repo. `AccessKeyId` is an identifier,
+not the secret value.
 
 The setup command writes an ignored local file:
 
@@ -54,6 +71,7 @@ private downloaded-assets/tools/assetctl.ps1 exists
 private downloaded-assets/registry/asset-registry.jsonl exists
 private downloaded-assets/connector/schemas exists
 private connector-capabilities runs, unless -SkipPrivateValidation is used
+private paths are redacted from setup and doctor output by default
 ```
 
 It does not:
@@ -65,6 +83,8 @@ fetch Drive binaries
 approve materialization proposals
 mutate Google Drive
 publish generated reports
+clone or fetch the private repository
+guess local private workspace paths unless -AllowSiblingInference is supplied
 ```
 
 ## Normal AI Workflow

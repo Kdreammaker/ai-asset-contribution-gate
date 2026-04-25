@@ -1,0 +1,66 @@
+{
+  "schema_version": "1.0",
+  "extension_id": "ai-asset-contribution-gate",
+  "name": "AI Asset Contribution Safety Gate",
+  "version": "v0.3.3",
+  "repository": "Kdreammaker/ai-asset-contribution-gate",
+  "public_safe_by_default": true,
+  "default_mode": "fixture-only",
+  "required_runtimes": {
+    "powershell": "5.1+",
+    "python": "3.9+",
+    "git": "recommended",
+    "node": "optional"
+  },
+  "local_runtime_paths": [
+    "reports/",
+    "reports/connector/",
+    ".assetctl/",
+    ".assetctl/requests/",
+    ".assetctl/cache/",
+    ".assetctl-private-connector.local.json"
+  ],
+  "commands": {
+    "bootstrap": "./tools/bootstrap-workspace.ps1",
+    "doctor": "./tools/assetctl-doctor.ps1",
+    "candidate_validate": "./tools/candidate-gate.ps1 -Operation validate-fixtures -AssetsRoot .",
+    "connector_validate": "./tools/connector-client.ps1 -Operation validate-fixtures",
+    "private_attach": "./tools/setup-private-connector.ps1 -PrivateWorkspaceRoot \"<owner-approved-private-workspace>\""
+  },
+  "safe_capabilities": [
+    "validate synthetic candidate fixtures",
+    "validate public connector schemas and fixtures",
+    "create public-safe connector request files",
+    "search public-safe metadata fixtures",
+    "run public-safe leak scans",
+    "check release updates when explicitly requested"
+  ],
+  "private_attach_boundary": {
+    "requires_owner_configuration": true,
+    "does_not_auto_clone_private_repo": true,
+    "does_not_guess_private_paths_by_default": true,
+    "does_not_copy_private_registry_or_drive_data": true,
+    "supported_modes": [
+      "local-maintainer-explicit-path",
+      "external-safe-proxy-metadata"
+    ]
+  },
+  "tracked_data_policy": {
+    "allowed": [
+      "schemas",
+      "synthetic fixtures",
+      "public-safe docs",
+      "public-safe scripts"
+    ],
+    "forbidden": [
+      "raw private assets",
+      "private registry exports",
+      "Drive IDs",
+      "Slack tokens or channel IDs",
+      "host bridge paths",
+      "approval records",
+      "generated private reports",
+      "local absolute private paths"
+    ]
+  }
+}
