@@ -16,8 +16,8 @@ approval records, connector evidence, or local machine paths.
 
 Public installs are fixture-only by default. Cloning this repository does not
 grant private backend access, and public requests must not claim their own trust
-tier. Private access requires an owner-controlled connector configuration,
-scoped access key, or controlled proxy.
+tier. Private access requires a user-authorized local connector profile,
+scoped access-key identifier, or controlled proxy metadata.
 
 ## Included
 
@@ -26,6 +26,7 @@ tools/candidate_gate.py
 tools/candidate-gate.ps1
 tools/bootstrap-workspace.ps1
 tools/assetctl-doctor.ps1
+tools/user-profile.ps1
 tools/vector_index.py
 tools/vector-index.ps1
 tools/setup-private-connector.ps1
@@ -139,33 +140,43 @@ external use; ask for a specific design intent instead.
 ## Private Workspace Setup For AI Agents
 
 When an AI agent installs this public toolkit and needs real asset search or
-approved asset export, connect it through the owner-provided setup path instead
-of copying private data into this repo or exposing raw private workspace paths to
-untrusted agents:
+approved asset export, connect it through a user-authorized profile instead of
+copying private data into this repo or exposing raw private workspace paths to
+untrusted agents. The profile command shows the connection notice, records a
+local audit event outside this repository, and then writes only ignored local
+runtime config for this clone.
 
 ```powershell
-.\tools\setup-private-connector.ps1 -PrivateWorkspaceRoot "<owner-approved-private-workspace>" -CheckUpdates
+.\tools\user-profile.ps1 -Operation authorize -ConnectorMode external-safe-proxy -ConnectorProxyUrl "<user-authorized-proxy-url>" -AccessKeyId "<key-id-only>" -AcceptNotice
+.\tools\user-profile.ps1 -Operation attach
 ```
 
-This creates ignored local config at:
+For a local maintainer who is allowed to point this clone at a local private
+workspace, authorize the explicit path:
+
+```powershell
+.\tools\user-profile.ps1 -Operation authorize -ConnectorMode local-maintainer -PrivateWorkspaceRoot "<user-authorized-private-workspace>" -AcceptNotice
+.\tools\user-profile.ps1 -Operation attach
+```
+
+Bootstrap checks for an existing user-authorized profile and auto-attaches it
+unless `-SkipUserProfileAutoAttach` is supplied. A completed attach creates
+ignored local config and a short connection guide at:
 
 ```text
 .assetctl-private-connector.local.json
+.assetctl/connection-guide.md
 ```
 
-The command does not auto-clone a private repository and does not guess private
-paths by default. Local maintainers must pass the private workspace path
-explicitly; untrusted or external callers should use owner-provided scoped proxy
-metadata instead:
+The command does not auto-clone a private repository, does not guess private
+paths by default, does not store access-key secrets, and keeps the user profile
+and audit log outside the repository. `AccessKeyId` is an identifier, not the
+secret value.
 
-```powershell
-.\tools\setup-private-connector.ps1 -ConnectorMode external-safe-proxy -ConnectorProxyUrl "<owner-provided-proxy-url>" -AccessKeyId "<key-id-only>" -CheckUpdates
-```
-
-Do not store access-key secrets in this public repo. After setup, use the public
+After setup, use the public
 toolkit to create and validate public-safe requests, then use the private
 workspace `downloaded-assets\tools\assetctl.ps1` connector commands or the
-owner-provided proxy for real metadata search, materialization proposals, and
+user-authorized proxy for real metadata search, materialization proposals, and
 approved package or output-specific export. Non-internal callers should receive
 redacted connector responses and opaque result IDs when that backend mode is
 enabled; raw private identifiers remain private-backend material. See

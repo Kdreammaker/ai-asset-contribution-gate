@@ -2,7 +2,7 @@
   "schema_version": "1.0",
   "extension_id": "ai-asset-contribution-gate",
   "name": "AI Asset Contribution Safety Gate",
-  "version": "v0.3.3",
+  "version": "v0.3.4",
   "repository": "Kdreammaker/ai-asset-contribution-gate",
   "public_safe_by_default": true,
   "default_mode": "fixture-only",
@@ -23,9 +23,10 @@
   "commands": {
     "bootstrap": "./tools/bootstrap-workspace.ps1",
     "doctor": "./tools/assetctl-doctor.ps1",
+    "user_profile": "./tools/user-profile.ps1",
     "candidate_validate": "./tools/candidate-gate.ps1 -Operation validate-fixtures -AssetsRoot .",
     "connector_validate": "./tools/connector-client.ps1 -Operation validate-fixtures",
-    "private_attach": "./tools/setup-private-connector.ps1 -PrivateWorkspaceRoot \"<owner-approved-private-workspace>\""
+    "private_attach": "./tools/user-profile.ps1 -Operation authorize -AcceptNotice ..."
   },
   "safe_capabilities": [
     "validate synthetic candidate fixtures",
@@ -36,9 +37,11 @@
     "check release updates when explicitly requested"
   ],
   "private_attach_boundary": {
-    "requires_owner_configuration": true,
+    "requires_user_authorized_profile": true,
     "does_not_auto_clone_private_repo": true,
     "does_not_guess_private_paths_by_default": true,
+    "stores_profile_outside_repo": true,
+    "logs_connection_events_locally": true,
     "does_not_copy_private_registry_or_drive_data": true,
     "supported_modes": [
       "local-maintainer-explicit-path",

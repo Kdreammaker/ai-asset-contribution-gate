@@ -53,6 +53,21 @@ jobs:
         shell: pwsh
         run: .\tools\bootstrap-workspace.ps1 -SkipUpdateCheck
 
+      - name: Verify user-authorized profile flow
+        shell: pwsh
+        run: |
+          $status = .\tools\user-profile.ps1 -Operation status -ProfileName ci-fixture | ConvertFrom-Json
+          if (-not $status.ok) { throw "Initial profile status failed." }
+          $auth = .\tools\user-profile.ps1 -Operation authorize -ProfileName ci-fixture -ConnectorMode external-safe-proxy -ConnectorProxyUrl "https://connector.example.invalid/assetctl" -AccessKeyId "ci-key-id" -AcceptNotice | ConvertFrom-Json
+          if (-not $auth.ok) { throw "Profile authorize failed." }
+          $attach = .\tools\user-profile.ps1 -Operation attach -ProfileName ci-fixture | ConvertFrom-Json
+          if (-not $attach.ok) { throw "Profile attach failed." }
+          if (-not $attach.outputs.guide_path) { throw "Expected post-connection guide path." }
+          $guide = .\tools\user-profile.ps1 -Operation show-guide -ProfileName ci-fixture | ConvertFrom-Json
+          if (-not $guide.ok -or -not $guide.outputs.guide_text) { throw "Expected guide text after attach." }
+          $revoke = .\tools\user-profile.ps1 -Operation revoke -ProfileName ci-fixture | ConvertFrom-Json
+          if (-not $revoke.ok) { throw "Profile revoke failed." }
+
       - name: Verify public doctor
         shell: pwsh
         run: .\tools\assetctl-doctor.ps1

@@ -20,12 +20,12 @@ Give a new AI agent this instruction:
 Install the public AI asset toolkit, then connect it to my private asset
 workspace using the public repo instructions. Do not copy private registry
 files, raw assets, Drive IDs, approval records, generated reports, or local
-absolute paths into the public repo. Use tools/setup-private-connector.ps1 with
-the private workspace path only when I approve local maintainer access,
-validate the connector, and use the private workspace assetctl commands for real
-search, materialization proposals, and approved package export. For untrusted or
-external agents, use a scoped connector, access key, or controlled proxy instead
-of sharing the raw private workspace path.
+absolute paths into the public repo. Use tools/user-profile.ps1 to show the
+connection notice, collect my connection approval, record a local audit event,
+and attach only through ignored local runtime config. Use a local private
+workspace path only when I approve local maintainer access. For untrusted or
+external agents, use a scoped connector, access-key identifier, or controlled
+proxy instead of sharing the raw private workspace path.
 ```
 
 ## Setup Command
@@ -35,20 +35,29 @@ From the public toolkit root:
 ```powershell
 .\tools\bootstrap-workspace.ps1
 .\tools\assetctl-doctor.ps1
-.\tools\setup-private-connector.ps1 -PrivateWorkspaceRoot "<owner-approved-private-workspace>" -CheckUpdates
+.\tools\user-profile.ps1 -Operation authorize -ConnectorMode external-safe-proxy -ConnectorProxyUrl "<user-authorized-proxy-url>" -AccessKeyId "<key-id-only>" -AcceptNotice
+.\tools\user-profile.ps1 -Operation attach
 ```
 
-`setup-private-connector.ps1` no longer guesses a sibling private workspace by
-default. A local maintainer may opt in to sibling inference for their own
-machine by passing `-AllowSiblingInference`, but automation should pass
-`-PrivateWorkspaceRoot` explicitly.
+`user-profile.ps1 -Operation authorize` returns the pre-connection notice in
+JSON. `-AcceptNotice` means the user has allowed this connector profile for the
+current machine/session. Authorization writes the profile outside this
+repository and records a user-local audit event. Attach writes only ignored
+local runtime files in this clone.
 
-For external or untrusted agents, use owner-provided proxy metadata instead of a
-raw private path:
+For a local maintainer who is allowed to connect a local private workspace path:
 
 ```powershell
-.\tools\setup-private-connector.ps1 -ConnectorMode external-safe-proxy -ConnectorProxyUrl "<owner-provided-proxy-url>" -AccessKeyId "<key-id-only>" -CheckUpdates
+.\tools\user-profile.ps1 -Operation authorize -ConnectorMode local-maintainer -PrivateWorkspaceRoot "<user-authorized-private-workspace>" -AcceptNotice
+.\tools\user-profile.ps1 -Operation attach
 ```
+
+Bootstrap checks for an existing user-authorized profile and auto-attaches it
+unless `-SkipUserProfileAutoAttach` is supplied. `setup-private-connector.ps1`
+remains as a lower-level command for controlled automation. It no longer guesses
+a sibling private workspace by default. A local maintainer may opt in to sibling
+inference for their own machine by passing `-AllowSiblingInference`, but
+automation should prefer `user-profile.ps1`.
 
 Do not store access-key secrets in this repo. `AccessKeyId` is an identifier,
 not the secret value.
@@ -57,9 +66,12 @@ The setup command writes an ignored local file:
 
 ```text
 .assetctl-private-connector.local.json
+.assetctl/connection-guide.md
 ```
 
-That file may contain local absolute paths and must remain untracked.
+Those files may contain local runtime hints and must remain untracked. The
+user-authorized profile and connection audit log are stored outside this
+repository under the user's local AssetCtl config location.
 
 ## What Setup Verifies
 
@@ -85,6 +97,7 @@ mutate Google Drive
 publish generated reports
 clone or fetch the private repository
 guess local private workspace paths unless -AllowSiblingInference is supplied
+store access-key secrets
 ```
 
 ## Normal AI Workflow

@@ -2,7 +2,9 @@ param(
     [string]$Root = (Resolve-Path (Join-Path $PSScriptRoot '..')).Path,
     [string]$OutputPath = '',
     [switch]$SkipUpdateCheck,
-    [switch]$SkipValidation
+    [switch]$SkipValidation,
+    [switch]$SkipUserProfileAutoAttach,
+    [string]$ProfileName = 'default'
 )
 
 $ErrorActionPreference = 'Stop'
@@ -43,7 +45,14 @@ function Invoke-JsonCommand {
             $Parameters = @{}
         }
         $text = & $FilePath @Parameters 2>&1
-        $exitCode = $LASTEXITCODE
+        $commandSucceeded = $?
+        $exitCode = 0
+        if ($null -ne $LASTEXITCODE -and -not [string]::IsNullOrWhiteSpace([string]$LASTEXITCODE)) {
+            $exitCode = [int]$LASTEXITCODE
+        }
+        elseif (-not $commandSucceeded) {
+            $exitCode = 1
+        }
         $joined = ($text -join [Environment]::NewLine).Trim()
         $parsed = $null
         if (-not [string]::IsNullOrWhiteSpace($joined)) {
@@ -113,12 +122,41 @@ $placeholder = [ordered]@{
     config_type = 'assetctl_connector_placeholder'
     generated_at_utc = [DateTime]::UtcNow.ToString('o')
     private_attach_required = $true
-    private_attach_command = '.\tools\setup-private-connector.ps1 -PrivateWorkspaceRoot "<owner-approved-private-workspace>"'
-    note = 'This ignored placeholder contains no secrets and no private workspace path.'
+    private_attach_command = '.\tools\user-profile.ps1 -Operation authorize -AcceptNotice ...'
+    note = 'This ignored placeholder contains no secrets and no private workspace path. User-authorized profiles are stored outside this repository.'
 }
 $encoding = New-Object System.Text.UTF8Encoding($false)
 [System.IO.File]::WriteAllText($placeholderPath, ($placeholder | ConvertTo-Json -Depth 8) + [Environment]::NewLine, $encoding)
 $filesWritten += $placeholderPath
+
+if (-not $SkipUserProfileAutoAttach) {
+    $profileStatus = Invoke-JsonCommand -Name 'user-profile-status' -FilePath (Join-Path $repoRoot 'tools\user-profile.ps1') -Parameters @{ Operation = 'status'; Root = $repoRoot; ProfileName = $ProfileName } -SoftFail $true
+    if (-not $profileStatus.ok) {
+        $warnings += "User profile status did not complete: $($profileStatus.message)"
+        $profileStatus.ok = $true
+    }
+    $checks += $profileStatus
+
+    $hasProfile = $false
+    if ($profileStatus.details -and $profileStatus.details.outputs -and $profileStatus.details.outputs.profile_configured) {
+        $hasProfile = [bool]$profileStatus.details.outputs.profile_configured
+    }
+
+    if ($hasProfile) {
+        $profileAttach = Invoke-JsonCommand -Name 'user-profile-auto-attach' -FilePath (Join-Path $repoRoot 'tools\user-profile.ps1') -Parameters @{ Operation = 'attach'; Root = $repoRoot; ProfileName = $ProfileName } -SoftFail $true
+        if (-not $profileAttach.ok) {
+            $warnings += "User profile auto-attach did not complete: $($profileAttach.message)"
+            $profileAttach.ok = $true
+        }
+        $checks += $profileAttach
+    }
+    else {
+        $warnings += 'No user-authorized connector profile found; bootstrap will remain fixture-only.'
+    }
+}
+else {
+    $warnings += 'User profile auto-attach was skipped by -SkipUserProfileAutoAttach.'
+}
 
 if (-not $SkipValidation) {
     $checks += Invoke-JsonCommand -Name 'candidate-fixtures' -FilePath (Join-Path $repoRoot 'tools\candidate-gate.ps1') -Parameters @{ Operation = 'validate-fixtures'; AssetsRoot = $repoRoot }
@@ -159,7 +197,7 @@ $result = [ordered]@{
     warnings = $warnings
     errors = $errors
     files_written = $filesWritten
-    next_recommended_action = if ($ok) { 'Run .\tools\assetctl-doctor.ps1. For private access, ask the owner for explicit connector configuration.' } else { 'Fix failed checks, then rerun bootstrap.' }
+    next_recommended_action = if ($ok) { 'Run .\tools\assetctl-doctor.ps1. For private access, run user-profile authorize only after the user allows connector access.' } else { 'Fix failed checks, then rerun bootstrap.' }
 }
 
 if ([string]::IsNullOrWhiteSpace($OutputPath)) {

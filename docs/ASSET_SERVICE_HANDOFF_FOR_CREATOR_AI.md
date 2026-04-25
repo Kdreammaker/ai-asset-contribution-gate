@@ -34,8 +34,9 @@ Ten `template_pack_016` slide references remain unpromoted because no matching
 JPG classification authority file exists for them.
 
 This public snapshot is descriptive, not an entitlement to enumerate the private
-backend. Public installs run against synthetic fixtures until the owner provides
-a scoped connector configuration, access key, or controlled proxy.
+backend. Public installs run against synthetic fixtures until the user
+authorizes a local connector profile, scoped access-key identifier, or
+controlled proxy metadata.
 
 ## What You Can Request
 
@@ -77,16 +78,21 @@ Validate the public client:
 .\tools\candidate-gate.ps1 -Operation validate-fixtures -AssetsRoot .
 ```
 
-If the private workspace is available on the same machine and the owner approves
-local maintainer access, connect it:
+If private access is available, authorize and attach a connector profile. This
+shows the connection notice, records a local audit event, and writes only
+ignored local runtime config in this clone:
 
 ```powershell
-.\tools\setup-private-connector.ps1 -PrivateWorkspaceRoot "<path-to-private-workspace>"
+.\tools\user-profile.ps1 -Operation authorize -ConnectorMode external-safe-proxy -ConnectorProxyUrl "<user-authorized-proxy-url>" -AccessKeyId "<key-id-only>" -AcceptNotice
+.\tools\user-profile.ps1 -Operation attach
 ```
 
-The setup command creates `.assetctl-private-connector.local.json`. That file is
-ignored by Git and must stay local. Do not give raw private workspace paths to
-untrusted AIs; use a scoped connector or controlled proxy for external callers.
+For local maintainer access, use `-ConnectorMode local-maintainer` with an
+explicit user-authorized private workspace path. Attach creates
+`.assetctl-private-connector.local.json` and `.assetctl/connection-guide.md`.
+Those files are ignored by Git and must stay local. Do not give raw private
+workspace paths to untrusted AIs; use a scoped connector or controlled proxy for
+external callers.
 
 ## Asset-Consuming AI Workflow
 

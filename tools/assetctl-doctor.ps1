@@ -3,7 +3,8 @@ param(
     [switch]$CheckUpdates,
     [switch]$SkipValidation,
     [switch]$PrivateValidation,
-    [switch]$ShowPrivatePaths
+    [switch]$ShowPrivatePaths,
+    [string]$ProfileName = 'default'
 )
 
 $ErrorActionPreference = 'Stop'
@@ -94,7 +95,14 @@ function Invoke-JsonCommand {
             $Parameters = @{}
         }
         $text = & $FilePath @Parameters 2>&1
-        $exitCode = $LASTEXITCODE
+        $commandSucceeded = $?
+        $exitCode = 0
+        if ($null -ne $LASTEXITCODE -and -not [string]::IsNullOrWhiteSpace([string]$LASTEXITCODE)) {
+            $exitCode = [int]$LASTEXITCODE
+        }
+        elseif (-not $commandSucceeded) {
+            $exitCode = 1
+        }
         $joined = ($text -join [Environment]::NewLine).Trim()
         $parsed = $null
         if (-not [string]::IsNullOrWhiteSpace($joined)) {
@@ -126,6 +134,12 @@ $connectorState = [ordered]@{
     private_assetctl = ''
     proxy_url = ''
     access_key_id = ''
+}
+$userProfileState = [ordered]@{
+    profile_name = $ProfileName
+    configured = $false
+    connector_mode = 'not_configured'
+    user_authorized = $false
 }
 
 $extensionPath = Join-Path $repoRoot 'assetctl-extension.json'
@@ -169,6 +183,16 @@ else {
 if ($CheckUpdates) {
     $checks += Invoke-JsonCommand -Name 'update-check' -FilePath (Join-Path $repoRoot 'tools\candidate-gate.ps1') -Parameters @{ Operation = 'update-check' } -WarningOnly $true
 }
+
+$profileCheck = Invoke-JsonCommand -Name 'user-profile-status' -FilePath (Join-Path $repoRoot 'tools\user-profile.ps1') -Parameters @{ Operation = 'status'; Root = $repoRoot; ProfileName = $ProfileName } -WarningOnly $true
+if ($profileCheck.details -and $profileCheck.details.outputs) {
+    $profileOutputs = $profileCheck.details.outputs
+    $userProfileState.profile_name = $profileOutputs.profile_name
+    $userProfileState.configured = [bool]$profileOutputs.profile_configured
+    if ($profileOutputs.connector_mode) { $userProfileState.connector_mode = $profileOutputs.connector_mode }
+    if ($profileOutputs.user_authorized) { $userProfileState.user_authorized = [bool]$profileOutputs.user_authorized }
+}
+$checks += $profileCheck
 
 $configPath = Join-Path $repoRoot '.assetctl-private-connector.local.json'
 if (Test-Path -LiteralPath $configPath -PathType Leaf) {
@@ -219,8 +243,9 @@ $result = [ordered]@{
     checks = $checks
     warnings = $warnings
     errors = $errors
+    user_profile_state = $userProfileState
     connector_state = $connectorState
-    next_recommended_action = if ($ok -and -not $connectorState.configured) { 'Public toolkit is ready in fixture-only mode. Run setup-private-connector only with owner-approved connector configuration.' } elseif ($ok) { 'Toolkit is ready. Use connector-client for public-safe requests.' } else { 'Run bootstrap or fix failed checks, then rerun doctor.' }
+    next_recommended_action = if ($ok -and $userProfileState.configured -and -not $connectorState.configured) { 'Run .\tools\user-profile.ps1 -Operation attach, or rerun bootstrap to auto-attach the authorized profile.' } elseif ($ok -and -not $connectorState.configured) { 'Public toolkit is ready in fixture-only mode. Run user-profile authorize only after the user allows connector access.' } elseif ($ok) { 'Toolkit is ready. Use connector-client for public-safe requests.' } else { 'Run bootstrap or fix failed checks, then rerun doctor.' }
 }
 
 $result | ConvertTo-Json -Depth 18

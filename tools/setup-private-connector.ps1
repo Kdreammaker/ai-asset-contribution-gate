@@ -145,14 +145,14 @@ if ($ConnectorMode -eq 'local-maintainer' -and [string]::IsNullOrWhiteSpace($Pri
 
 if ($ConnectorMode -eq 'local-maintainer' -and [string]::IsNullOrWhiteSpace($PrivateWorkspaceRoot)) {
     $errors += 'PrivateWorkspaceRoot is required for local-maintainer mode. This command does not guess or clone private repositories by default.'
-    $result = New-SetupResult -Ok $false -Errors $errors -Warnings $warnings -NextRecommendedAction 'Run with -PrivateWorkspaceRoot "<owner-approved-private-workspace>" or use -ConnectorMode external-safe-proxy with owner-provided proxy metadata.'
+    $result = New-SetupResult -Ok $false -Errors $errors -Warnings $warnings -NextRecommendedAction 'Prefer .\tools\user-profile.ps1 -Operation authorize after user consent, or run with -PrivateWorkspaceRoot "<user-authorized-private-workspace>".'
     $result | ConvertTo-Json -Depth 12
     exit 1
 }
 
 if ($ConnectorMode -eq 'external-safe-proxy' -and [string]::IsNullOrWhiteSpace($ConnectorProxyUrl) -and [string]::IsNullOrWhiteSpace($AccessKeyId)) {
-    $errors += 'external-safe-proxy mode requires -ConnectorProxyUrl or -AccessKeyId metadata from the owner. Do not store access-key secrets in this public toolkit.'
-    $result = New-SetupResult -Ok $false -Errors $errors -Warnings $warnings -NextRecommendedAction 'Ask the owner for scoped connector proxy metadata or an access-key identifier, not a secret.'
+    $errors += 'external-safe-proxy mode requires -ConnectorProxyUrl or -AccessKeyId metadata approved by the user. Do not store access-key secrets in this public toolkit.'
+    $result = New-SetupResult -Ok $false -Errors $errors -Warnings $warnings -NextRecommendedAction 'Use user-authorized scoped connector proxy metadata or an access-key identifier, not a secret.'
     $result | ConvertTo-Json -Depth 12
     exit 1
 }
@@ -163,7 +163,7 @@ if ($ConnectorMode -eq 'local-maintainer') {
     }
     catch {
         $errors += "PrivateWorkspaceRoot could not be resolved: $($_.Exception.Message)"
-        $result = New-SetupResult -Ok $false -Errors $errors -Warnings $warnings -NextRecommendedAction 'Check the owner-approved private workspace path and rerun setup.'
+        $result = New-SetupResult -Ok $false -Errors $errors -Warnings $warnings -NextRecommendedAction 'Check the user-authorized private workspace path and rerun setup.'
         $result | ConvertTo-Json -Depth 12
         exit 1
     }
@@ -278,7 +278,7 @@ $next = if ($ok) {
         'Run connector-client new-request in the public toolkit, then run private assetctl connector-search or connector-materialize-plan in the private workspace.'
     }
     else {
-        'Use connector-client new-request to create public-safe requests, then submit through the owner-provided proxy or scoped connector flow.'
+        'Use connector-client new-request to create public-safe requests, then submit through the user-authorized proxy or scoped connector flow.'
     }
 }
 else {

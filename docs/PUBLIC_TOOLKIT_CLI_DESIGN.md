@@ -87,16 +87,18 @@ Current public toolkit bridge:
 ```powershell
 .\tools\bootstrap-workspace.ps1
 .\tools\assetctl-doctor.ps1
-.\tools\setup-private-connector.ps1 -PrivateWorkspaceRoot "<owner-approved-private-workspace>" -CheckUpdates
+.\tools\user-profile.ps1 -Operation authorize -ConnectorMode external-safe-proxy -ConnectorProxyUrl "<user-authorized-proxy-url>" -AccessKeyId "<key-id-only>" -AcceptNotice
+.\tools\user-profile.ps1 -Operation attach
 ```
 
-The bridge writes only ignored local connector config and validates that the
-private workspace exposes the connector runtime. It is the default setup path
-for local maintainers that install the public repo and then need real private
-asset search or approval-gated materialization. It must not auto-clone the
-private repo or guess private paths by default. External-safe attachment uses
-owner-provided proxy metadata or a scoped access-key identifier without storing
-access-key secrets in the public repo.
+The bridge shows a pre-connection notice, records local audit events outside
+the repository, writes only ignored local connector config, and produces a
+short `.assetctl/connection-guide.md` after a successful attach. It is the
+default setup path for installed public repos that need real private asset
+search or approval-gated materialization. It must not auto-clone the private
+repo, guess private paths by default, store access-key secrets, or copy private
+registry data into the public repo. External-safe attachment uses
+user-authorized proxy metadata or a scoped access-key identifier.
 
 ### `assetctl doctor`
 
