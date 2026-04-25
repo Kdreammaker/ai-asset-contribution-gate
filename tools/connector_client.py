@@ -12,6 +12,16 @@ from typing import Any
 SCHEMA_VERSION = "1.0"
 CONNECTOR_SCHEMA_DIR = Path("schemas") / "connector"
 CONNECTOR_FIXTURE_DIR = Path("fixtures") / "connector"
+FORBIDDEN_PUBLIC_RESPONSE_FIELDS = {
+    "asset_uid",
+    "drive" + "_file_id",
+    "drive" + "_file_ids",
+    "drive_ref",
+    "drive_refs",
+    "local_path",
+    "manifest_path",
+    "semantic_context",
+}
 
 
 def utc_now() -> str:
@@ -88,6 +98,25 @@ def validate_request_payload(payload: dict[str, Any]) -> list[str]:
     delivery = payload.get("delivery") or {}
     if delivery.get("include_private_storage_refs") is True:
         errors.append("public requests must not ask for private storage references")
+    caller = payload.get("caller") or {}
+    if payload.get("trust_tier") or (isinstance(caller, dict) and caller.get("trust_tier")):
+        errors.append("public requests must not claim trust_tier; the private backend assigns it")
+    return errors
+
+
+def validate_response_payload(payload: dict[str, Any]) -> list[str]:
+    errors: list[str] = []
+    for key in ("ok", "schema_version", "response_id", "request_id", "operation_type", "results"):
+        if key not in payload:
+            errors.append(f"response missing required key: {key}")
+    for index, row in enumerate(listify(payload.get("results"))):
+        if not isinstance(row, dict):
+            continue
+        if row.get("private_storage_ref_redacted") is False:
+            errors.append(f"public response result {index} contains an unredacted private storage marker")
+        leaked_fields = sorted(FORBIDDEN_PUBLIC_RESPONSE_FIELDS.intersection(row.keys()))
+        if leaked_fields:
+            errors.append(f"public response result {index} contains private fields: {', '.join(leaked_fields)}")
     return errors
 
 
@@ -116,6 +145,40 @@ def command_validate_fixtures(args: argparse.Namespace) -> dict[str, Any]:
     except Exception as exc:  # noqa: BLE001
         errors.append(f"{jsonl_path.relative_to(root).as_posix()} failed JSONL parse: {exc}")
         jsonl_rows = []
+    trust_tier_errors = validate_request_payload(
+        {
+            "schema_version": SCHEMA_VERSION,
+            "request_id": "fixture-trust-tier-spoof",
+            "request_type": "asset_search",
+            "query": "all assets",
+            "trust_tier": "internal-maintainer",
+            "caller": {"trust_tier": "internal-maintainer"},
+            "delivery": {"include_private_storage_refs": False},
+        }
+    )
+    if not any("trust_tier" in error for error in trust_tier_errors):
+        errors.append("adversarial fixture failed: public trust_tier spoof was not rejected")
+    private_response_errors = validate_response_payload(
+        {
+            "ok": True,
+            "schema_version": SCHEMA_VERSION,
+            "response_id": "fixture-private-response",
+            "request_id": "fixture-private-response",
+            "operation_type": "connector_search",
+            "results": [
+                {
+                    "result_id": "result:fixture",
+                    "asset_uid": "fixture-private-uid",
+                    "drive" + "_file_id": "fixture-private-storage-id",
+                    "local_path": "private/asset.svg",
+                    "manifest_path": "private/manifest.json",
+                    "semantic_context": {"evidence": ["fixture"]},
+                }
+            ],
+        }
+    )
+    if not any("private fields" in error for error in private_response_errors):
+        errors.append("adversarial fixture failed: public raw private response fields were not rejected")
     return {
         "ok": len(errors) == 0,
         "operation_type": "connector_validate_fixtures",
@@ -221,13 +284,7 @@ def command_search_metadata(args: argparse.Namespace) -> dict[str, Any]:
 
 def command_validate_response(args: argparse.Namespace) -> dict[str, Any]:
     payload = read_json(Path(args.input_path))
-    errors: list[str] = []
-    for key in ("ok", "schema_version", "response_id", "request_id", "operation_type", "results"):
-        if key not in payload:
-            errors.append(f"response missing required key: {key}")
-    for row in listify(payload.get("results")):
-        if isinstance(row, dict) and row.get("private_storage_ref_redacted") is False:
-            errors.append("public response contains an unredacted private storage marker")
+    errors = validate_response_payload(payload)
     return {
         "ok": len(errors) == 0,
         "operation_type": "connector_validate_response",
