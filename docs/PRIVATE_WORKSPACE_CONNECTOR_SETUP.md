@@ -87,12 +87,21 @@ Use a public-only request bundle instead:
 .\tools\connector-client.ps1 -Operation validate-bundle -InputPath ".\reports\connector-request-bundle.json"
 ```
 
+Invalid bundles are not written by default. If a bundle fails validation, do
+not send it to the private backend unless it was intentionally created with
+`-AllowInvalidOutput` for an unsafe-review/debug path and clearly marked
+non-sendable.
+
 The private backend owner processes that bundle and returns a public-safe
 handoff JSON. Validate the returned file locally:
 
 ```powershell
 .\tools\connector-client.ps1 -Operation validate-handoff -InputPath ".\reports\connector-response-handoff.json"
 ```
+
+The returned handoff can be a success, safe rejection, or policy-blocked
+response. Validation must fail if it contains private workspace paths, Drive
+IDs, access-key secrets, generated private reports, or raw asset payloads.
 
 For the current owner machine only, an explicitly attached `local-maintainer`
 profile can use the convenience runner:

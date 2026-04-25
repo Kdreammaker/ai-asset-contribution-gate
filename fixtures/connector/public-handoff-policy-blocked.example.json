@@ -1,0 +1,36 @@
+{
+  "ok": false,
+  "schema_version": "1.0",
+  "handoff_type": "assetctl_public_response_handoff",
+  "generated_at_utc": "2026-04-26T00:00:00Z",
+  "bundle_id": "public-bundle:fixture-b43-policy",
+  "request_id": "public-req:fixture-b43-policy",
+  "response": {
+    "ok": false,
+    "schema_version": "1.0",
+    "response_id": "resp:fixture-b43-policy",
+    "request_id": "public-req:fixture-b43-policy",
+    "operation_type": "connector_search",
+    "status": "policy_blocked",
+    "policy_decision": {
+      "status": "blocked_public_preflight",
+      "reason": "broad_enumeration"
+    },
+    "errors": [
+      "policy blocked broad enumeration request"
+    ]
+  },
+  "safety": {
+    "connector_mode": "external-safe",
+    "private_repo_not_required_on_requester_pc": true,
+    "contains_private_paths": false,
+    "contains_drive_ids": false,
+    "contains_access_key_secret": false,
+    "contains_raw_assets": false
+  },
+  "warnings": [],
+  "errors": [
+    "policy blocked broad enumeration request"
+  ],
+  "next_recommended_action": "Submit a specific metadata request."
+}

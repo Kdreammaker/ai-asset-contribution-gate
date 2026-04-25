@@ -1,0 +1,44 @@
+{
+  "schema_version": "1.0",
+  "bundle_type": "assetctl_public_request_bundle",
+  "bundle_id": "public-bundle:fixture-b43",
+  "generated_at_utc": "2026-04-26T00:00:00Z",
+  "source": {
+    "toolkit": "ai-asset-contribution-gate",
+    "local_source_path": "reports/asset-service-request.json"
+  },
+  "request": {
+    "schema_version": "1.0",
+    "request_id": "public-req:fixture-b43",
+    "request_type": "asset_search",
+    "query": "Korean B2B pitch deck calm blue KPI icons",
+    "intent": "Korean B2B pitch deck calm blue KPI icons",
+    "locale": "auto",
+    "asset_types": [
+      "palette",
+      "icon",
+      "deck_component"
+    ],
+    "filters": {},
+    "delivery": {
+      "mode": "metadata_only",
+      "include_private_storage_refs": false
+    },
+    "limit": 8
+  },
+  "safety": {
+    "public_only_local_bundle": true,
+    "private_repo_connected": false,
+    "contains_private_paths": false,
+    "contains_drive_ids": false,
+    "contains_access_key_secret": false,
+    "contains_raw_assets": false
+  },
+  "handoff": {
+    "expected_private_operation": "connector-search",
+    "expected_public_response_type": "assetctl_public_response_handoff",
+    "notes": [
+      "Send this bundle to the private asset backend owner or approved handoff channel."
+    ]
+  }
+}

@@ -13,6 +13,7 @@ param(
     [string]$AssetType = '',
     [string]$DeliveryMode = 'metadata_only',
     [int]$Limit = 10,
+    [switch]$AllowInvalidOutput,
     [switch]$CheckUpdates
 )
 
@@ -50,6 +51,7 @@ switch ($Operation) {
         if (-not [string]::IsNullOrWhiteSpace($RequestId)) { $argsList += @('--request-id', $RequestId) }
         if (-not [string]::IsNullOrWhiteSpace($Intent)) { $argsList += @('--intent', $Intent) }
         if (-not [string]::IsNullOrWhiteSpace($OutputPath)) { $argsList += @('--output-path', $OutputPath) }
+        if ($AllowInvalidOutput) { $argsList += @('--allow-invalid-output') }
     }
     'bundle-request' {
         if ([string]::IsNullOrWhiteSpace($InputPath) -and [string]::IsNullOrWhiteSpace($Query)) { throw 'bundle-request requires -InputPath or -Query.' }
@@ -59,6 +61,7 @@ switch ($Operation) {
         if (-not [string]::IsNullOrWhiteSpace($RequestId)) { $argsList += @('--request-id', $RequestId) }
         if (-not [string]::IsNullOrWhiteSpace($Intent)) { $argsList += @('--intent', $Intent) }
         if (-not [string]::IsNullOrWhiteSpace($OutputPath)) { $argsList += @('--output-path', $OutputPath) }
+        if ($AllowInvalidOutput) { $argsList += @('--allow-invalid-output') }
     }
     'validate-request' {
         if ([string]::IsNullOrWhiteSpace($InputPath)) { throw 'validate-request requires -InputPath.' }

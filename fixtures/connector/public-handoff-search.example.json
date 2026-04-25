@@ -1,0 +1,47 @@
+{
+  "ok": true,
+  "schema_version": "1.0",
+  "handoff_type": "assetctl_public_response_handoff",
+  "generated_at_utc": "2026-04-26T00:00:00Z",
+  "bundle_id": "public-bundle:fixture-b43",
+  "request_id": "public-req:fixture-b43",
+  "response": {
+    "ok": true,
+    "schema_version": "1.0",
+    "response_id": "resp:fixture-b43-search",
+    "request_id": "public-req:fixture-b43",
+    "operation_type": "connector_search",
+    "created_at": "2026-04-26T00:00:00Z",
+    "policy_decision": {
+      "status": "allowed_metadata_only",
+      "materialization_status": "proposal_required_for_drive_payloads",
+      "approval_required_for_binary_release": true
+    },
+    "result_count": 1,
+    "results": [
+      {
+        "result_id": "result:fixture-b43",
+        "asset_type": "deck_component",
+        "display_name": "public-safe KPI module",
+        "license_class": "open-source",
+        "license_action": "none",
+        "risk_level": "low",
+        "policy_notes": [
+          "metadata_only"
+        ],
+        "private_storage_ref_redacted": true
+      }
+    ]
+  },
+  "safety": {
+    "connector_mode": "external-safe",
+    "private_repo_not_required_on_requester_pc": true,
+    "contains_private_paths": false,
+    "contains_drive_ids": false,
+    "contains_access_key_secret": false,
+    "contains_raw_assets": false
+  },
+  "warnings": [],
+  "errors": [],
+  "next_recommended_action": "Use the public-safe metadata only."
+}

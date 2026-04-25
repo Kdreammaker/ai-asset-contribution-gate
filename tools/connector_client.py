@@ -14,16 +14,119 @@ CONNECTOR_SCHEMA_DIR = Path("schemas") / "connector"
 CONNECTOR_FIXTURE_DIR = Path("fixtures") / "connector"
 FORBIDDEN_PUBLIC_RESPONSE_FIELDS = {
     "asset_uid",
+    "asset_uids",
     "drive" + "_file_id",
     "drive" + "_file_ids",
+    "drive_link",
+    "drive_links",
     "drive_ref",
     "drive_refs",
+    "drive_url",
+    "drive_urls",
     "local_path",
+    "local_paths",
+    "local_absolute_path",
+    "local_absolute_paths",
     "manifest_path",
+    "private_report_path",
+    "private_report_paths",
+    "private_storage_ref",
+    "private_storage_refs",
     "semantic_context",
 }
+FORBIDDEN_PUBLIC_FIELD_NAMES = FORBIDDEN_PUBLIC_RESPONSE_FIELDS.union(
+    {
+        "access_key_secret",
+        "access_token",
+        "api_key",
+        "authorization",
+        "bearer_token",
+        "client_secret",
+        "drive_id",
+        "drive_ids",
+        "generated_private_report",
+        "generated_private_reports",
+        "github_token",
+        "password",
+        "private_assetctl",
+        "private_workspace_root",
+        "raw_asset",
+        "raw_assets",
+        "secret",
+        "slack" + "_token",
+        "storage_ref",
+        "storage_refs",
+        "token",
+    }
+)
 PUBLIC_BUNDLE_TYPE = "assetctl_public_request_bundle"
 PUBLIC_HANDOFF_TYPE = "assetctl_public_response_handoff"
+BROAD_ENUMERATION_TERMS = {
+    "*",
+    "all",
+    "any",
+    "browse",
+    "catalog",
+    "crawl",
+    "dump",
+    "everything",
+    "exhaustive",
+    "full",
+    "inventory",
+    "library",
+    "list",
+    "raw",
+    "registry",
+    "show",
+    "systematic",
+}
+BROAD_ENUMERATION_PHRASES = (
+    "all assets",
+    "all icons",
+    "all files",
+    "all records",
+    "all registry",
+    "browse all",
+    "browse assets",
+    "browse catalog",
+    "browse everything",
+    "browse icons",
+    "browse library",
+    "complete catalog",
+    "complete inventory",
+    "dump assets",
+    "dump catalog",
+    "dump registry",
+    "entire catalog",
+    "entire library",
+    "entire registry",
+    "export all",
+    "full asset list",
+    "full catalog",
+    "full inventory",
+    "full registry",
+    "list all",
+    "raw registry",
+    "show all",
+    "systematic enumeration",
+)
+DRIVE_URL_RE = re.compile(r"https?://(?:drive|docs)\.google\.com/", re.IGNORECASE)
+DRIVE_ID_CONTEXT_RE = re.compile(
+    r"(drive[\s_-]*(?:file[\s_-]*)?id|docs[\s_-]*(?:file[\s_-]*)?id)\s*[:=]?\s*[A-Za-z0-9_-]{20,}",
+    re.IGNORECASE,
+)
+LOCAL_PATH_RE = re.compile(
+    r"(^|\s)([A-Za-z]:[\\/]+|\\\\[^\\/]+[\\/][^\\/]+|/(?:Users|home|mnt|var|private|Volumes)/|file://)",
+    re.IGNORECASE,
+)
+PRIVATE_REPORT_VALUE_RE = re.compile(
+    r"(^|[\\/])(?:downloaded-assets[\\/])?registry[\\/]reports[\\/]",
+    re.IGNORECASE,
+)
+SECRET_VALUE_RE = re.compile(
+    r"(sk-[A-Za-z0-9_-]{16,}|gh[pousr]_[A-Za-z0-9_]{20,}|xox[baprs]-[A-Za-z0-9-]{20,}|ya29\.[A-Za-z0-9_-]{20,}|Bearer\s+[A-Za-z0-9._-]{20,})",
+    re.IGNORECASE,
+)
 
 
 def utc_now() -> str:
@@ -96,6 +199,11 @@ def required_keys_for_fixture(name: str) -> list[str]:
         "private-export-manifest.example.json": ["schema_version", "manifest_id", "approval", "items"],
         "deck-generation-request.example.json": ["schema_version", "request_id", "deck"],
         "deck-generation-response.example.json": ["schema_version", "response_id", "status"],
+        "public-request-bundle.example.json": ["schema_version", "bundle_type", "bundle_id", "request"],
+        "public-handoff-search.example.json": ["schema_version", "handoff_type", "bundle_id", "request_id", "response"],
+        "public-handoff-deck-dry-run.example.json": ["schema_version", "handoff_type", "bundle_id", "request_id", "response"],
+        "public-handoff-rejection.example.json": ["schema_version", "handoff_type", "bundle_id", "request_id", "errors"],
+        "public-handoff-policy-blocked.example.json": ["schema_version", "handoff_type", "bundle_id", "request_id", "response", "errors"],
     }
     return mapping.get(name, [])
 
@@ -113,14 +221,30 @@ def validate_request_payload(payload: dict[str, Any]) -> list[str]:
     caller = payload.get("caller") or {}
     if payload.get("trust_tier") or (isinstance(caller, dict) and caller.get("trust_tier")):
         errors.append("public requests must not claim trust_tier; the private backend assigns it")
+    errors.extend(validate_public_preflight(payload, artifact_label="request"))
     return errors
 
 
 def validate_response_payload(payload: dict[str, Any]) -> list[str]:
     errors: list[str] = []
-    for key in ("ok", "schema_version", "response_id", "request_id", "operation_type", "results"):
+    for key in ("ok", "schema_version", "response_id", "request_id", "operation_type"):
         if key not in payload:
             errors.append(f"response missing required key: {key}")
+    if payload.get("schema_version") != SCHEMA_VERSION:
+        errors.append("response schema_version must be 1.0")
+    operation_type = str(payload.get("operation_type") or "")
+    response_ok = payload.get("ok")
+    is_deck_dry_run = "deck" in operation_type or "ppt" in operation_type or "dry_run" in operation_type
+    if response_ok is True and is_deck_dry_run:
+        for key in ("status", "pptx_created"):
+            if key not in payload:
+                errors.append(f"deck dry-run response missing required key: {key}")
+    elif response_ok is True:
+        if "results" not in payload:
+            errors.append("success response missing required key: results")
+    elif response_ok is False:
+        if not payload.get("errors") and not payload.get("status") and not payload.get("policy_decision"):
+            errors.append("rejection response must include errors, status, or policy_decision")
     for index, row in enumerate(listify(payload.get("results"))):
         if not isinstance(row, dict):
             continue
@@ -137,15 +261,67 @@ def find_forbidden_fields(value: Any, prefix: str = "$") -> list[str]:
     if isinstance(value, dict):
         for key, child in value.items():
             child_path = f"{prefix}.{key}"
-            if key in FORBIDDEN_PUBLIC_RESPONSE_FIELDS:
-                found.append(child_path)
-            if key in {"private_workspace_root", "private_assetctl", "local_absolute_path", "access_key_secret"}:
+            if str(key) in FORBIDDEN_PUBLIC_FIELD_NAMES:
                 found.append(child_path)
             found.extend(find_forbidden_fields(child, child_path))
     elif isinstance(value, list):
         for index, child in enumerate(value):
             found.extend(find_forbidden_fields(child, f"{prefix}[{index}]"))
     return found
+
+
+def find_forbidden_values(value: Any, prefix: str = "$") -> list[str]:
+    found: list[str] = []
+    if isinstance(value, dict):
+        for key, child in value.items():
+            found.extend(find_forbidden_values(child, f"{prefix}.{key}"))
+    elif isinstance(value, list):
+        for index, child in enumerate(value):
+            found.extend(find_forbidden_values(child, f"{prefix}[{index}]"))
+    elif isinstance(value, str):
+        if DRIVE_URL_RE.search(value):
+            found.append(f"{prefix} contains a Google Drive/Docs URL")
+        if DRIVE_ID_CONTEXT_RE.search(value):
+            found.append(f"{prefix} contains a Google Drive/Docs ID")
+        if LOCAL_PATH_RE.search(value.strip()):
+            found.append(f"{prefix} contains a local absolute path")
+        if PRIVATE_REPORT_VALUE_RE.search(value.strip()):
+            found.append(f"{prefix} contains a generated private report reference")
+        if SECRET_VALUE_RE.search(value):
+            found.append(f"{prefix} contains a secret-like value")
+    return found
+
+
+def validate_public_data_boundary(value: Any, artifact_label: str) -> list[str]:
+    errors: list[str] = []
+    forbidden = find_forbidden_fields(value)
+    if forbidden:
+        errors.append(f"{artifact_label} contains private-only fields: " + ", ".join(sorted(set(forbidden))))
+    forbidden_values = find_forbidden_values(value)
+    if forbidden_values:
+        errors.append(f"{artifact_label} contains private-only values: " + ", ".join(sorted(set(forbidden_values))))
+    return errors
+
+
+def validate_public_preflight(payload: dict[str, Any], artifact_label: str) -> list[str]:
+    errors: list[str] = []
+    query = str(payload.get("query") or payload.get("intent") or "").strip()
+    request_type = str(payload.get("request_type") or "")
+    if not query:
+        errors.append(f"{artifact_label} query/intent must not be empty")
+    normalized = re.sub(r"\s+", " ", query.lower()).strip()
+    query_tokens = set(tokenize(normalized))
+    if normalized in {"*", "all", "any", "browse", "dump", "everything"}:
+        errors.append(f"{artifact_label} query is too broad for public preflight")
+    if any(phrase in normalized for phrase in BROAD_ENUMERATION_PHRASES):
+        errors.append(f"{artifact_label} query asks for broad enumeration")
+    if request_type in {"asset_search", "manifest_export", "deck_generation_dry_run", "asset_resolve"}:
+        strong_terms = query_tokens.intersection(BROAD_ENUMERATION_TERMS)
+        specific_terms = query_tokens.difference(BROAD_ENUMERATION_TERMS)
+        if strong_terms and len(specific_terms) == 0:
+            errors.append(f"{artifact_label} query has only enumeration terms")
+    errors.extend(validate_public_data_boundary(payload, artifact_label))
+    return errors
 
 
 def validate_public_bundle_payload(payload: dict[str, Any]) -> list[str]:
@@ -159,9 +335,7 @@ def validate_public_bundle_payload(payload: dict[str, Any]) -> list[str]:
         errors.append("bundle request must be an object")
     else:
         errors.extend(validate_request_payload(request))
-    forbidden = find_forbidden_fields(payload)
-    if forbidden:
-        errors.append("bundle contains private-only fields: " + ", ".join(sorted(set(forbidden))))
+    errors.extend(validate_public_data_boundary(payload, "bundle"))
     return errors
 
 
@@ -172,13 +346,18 @@ def validate_public_handoff_payload(payload: dict[str, Any]) -> list[str]:
     if payload.get("handoff_type") != PUBLIC_HANDOFF_TYPE:
         errors.append(f"handoff_type must be {PUBLIC_HANDOFF_TYPE}")
     response = payload.get("response")
-    if not isinstance(response, dict):
-        errors.append("handoff response must be an object")
+    handoff_ok = payload.get("ok")
+    handoff_errors = payload.get("errors")
+    if response is None:
+        if handoff_ok is not False or not handoff_errors:
+            errors.append("handoff response may be null only for a rejection with errors")
+    elif not isinstance(response, dict):
+        errors.append("handoff response must be an object or null rejection")
     else:
         errors.extend(validate_response_payload(response))
-    forbidden = find_forbidden_fields(payload)
-    if forbidden:
-        errors.append("handoff contains private-only fields: " + ", ".join(sorted(set(forbidden))))
+    if handoff_ok is False and not handoff_errors and not (isinstance(response, dict) and response.get("errors")):
+        errors.append("rejection handoff must include errors")
+    errors.extend(validate_public_data_boundary(payload, "handoff"))
     return errors
 
 
@@ -201,6 +380,10 @@ def command_validate_fixtures(args: argparse.Namespace) -> dict[str, Any]:
                     errors.append(f"{path.relative_to(root).as_posix()} missing required key: {key}")
             if path.name == "asset-request.example.json":
                 errors.extend(validate_request_payload(payload))
+            if path.name == "public-request-bundle.example.json":
+                errors.extend(validate_public_bundle_payload(payload))
+            if path.name.startswith("public-handoff-"):
+                errors.extend(validate_public_handoff_payload(payload))
     jsonl_path = fixtures_dir / "public-cli-assets.fixture.jsonl"
     try:
         jsonl_rows = read_jsonl(jsonl_path)
@@ -278,8 +461,14 @@ def command_new_request(args: argparse.Namespace) -> dict[str, Any]:
         "errors": errors,
     }
     if args.output_path:
-        write_json(Path(args.output_path), request)
-        output["output_path"] = args.output_path
+        if errors and not args.allow_invalid_output:
+            output["output_path"] = ""
+            output["not_written_reason"] = "request has validation errors; pass --allow-invalid-output only for clearly marked unsafe-review artifacts"
+        else:
+            write_json(Path(args.output_path), request)
+            output["output_path"] = args.output_path
+            if errors:
+                output["unsafe_review_artifact"] = True
     return output
 
 
@@ -299,6 +488,7 @@ def build_request_from_args(args: argparse.Namespace) -> dict[str, Any]:
         delivery_mode=args.delivery_mode,
         limit=args.limit,
         output_path="",
+        allow_invalid_output=False,
     )
     return command_new_request(request_args)["request"]
 
@@ -342,8 +532,14 @@ def command_bundle_request(args: argparse.Namespace) -> dict[str, Any]:
         "errors": errors,
     }
     if args.output_path:
-        write_json(Path(args.output_path), bundle)
-        output["output_path"] = args.output_path
+        if errors and not args.allow_invalid_output:
+            output["output_path"] = ""
+            output["not_written_reason"] = "bundle has validation errors; pass --allow-invalid-output only for clearly marked unsafe-review artifacts"
+        else:
+            write_json(Path(args.output_path), bundle)
+            output["output_path"] = args.output_path
+            if errors:
+                output["unsafe_review_artifact"] = True
     return output
 
 
@@ -461,6 +657,7 @@ def build_parser() -> argparse.ArgumentParser:
     new_request.add_argument("--delivery-mode", default="metadata_only", choices=["metadata_only", "manifest_only", "materialization_proposal"])
     new_request.add_argument("--limit", type=int, default=10)
     new_request.add_argument("--output-path", default="")
+    new_request.add_argument("--allow-invalid-output", action="store_true")
     new_request.set_defaults(func=command_new_request)
 
     bundle = sub.add_parser("bundle-request")
@@ -474,6 +671,7 @@ def build_parser() -> argparse.ArgumentParser:
     bundle.add_argument("--delivery-mode", default="metadata_only", choices=["metadata_only", "manifest_only", "materialization_proposal"])
     bundle.add_argument("--limit", type=int, default=10)
     bundle.add_argument("--output-path", default="")
+    bundle.add_argument("--allow-invalid-output", action="store_true")
     bundle.set_defaults(func=command_bundle_request)
 
     validate_request = sub.add_parser("validate-request")

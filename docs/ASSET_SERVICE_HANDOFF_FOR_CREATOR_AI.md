@@ -88,12 +88,21 @@ the bundle to the private asset backend owner or approved handoff channel:
 .\tools\connector-client.ps1 -Operation validate-bundle -InputPath ".\reports\asset-service-request-bundle.json"
 ```
 
+Invalid bundles are not written by default. If validation fails, revise the
+request instead of sending the artifact. Unsafe-review/debug output requires
+`-AllowInvalidOutput` and must stay clearly marked non-sendable.
+
 When the private side returns a public-safe handoff response, validate it before
 using the metadata:
 
 ```powershell
 .\tools\connector-client.ps1 -Operation validate-handoff -InputPath ".\reports\asset-service-response-handoff.json"
 ```
+
+Valid handoffs include metadata search success, deck-generation dry-run
+success, safe rejection, and policy-blocked responses. Do not use a returned
+handoff if validation reports private paths, Drive IDs, access-key secrets,
+generated private reports, or raw asset leakage.
 
 If private access is available, authorize and attach a connector profile. This
 shows the connection notice, records a local audit event, and writes only

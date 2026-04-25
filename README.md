@@ -138,6 +138,10 @@ storage references, approval evidence, or generated private reports. Treat broad
 requests such as "all assets", "dump", or empty browsing as unsupported for
 external use; ask for a specific design intent instead.
 
+`bundle-request` validates the public preflight before writing an output file.
+Invalid bundles are not written by default; `-AllowInvalidOutput` is only for
+clearly marked unsafe-review/debug artifacts that must not be sent.
+
 For another PC or AI that does not have the private repository connected, the
 public-only handoff is the safe default: create a request bundle locally, send
 that bundle to the private asset backend owner or approved handoff channel, then
@@ -147,6 +151,11 @@ validate the returned public-safe handoff JSON:
 .\tools\connector-client.ps1 -Operation validate-bundle -InputPath ".\reports\connector-request-bundle.json"
 .\tools\connector-client.ps1 -Operation validate-handoff -InputPath ".\reports\connector-response-handoff.json"
 ```
+
+Returned handoffs may be metadata-search successes, deck dry-run successes,
+safe rejections, or policy-blocked responses. A valid handoff must still be
+public-safe: no private paths, Drive IDs, secrets, generated private reports, or
+raw asset payloads.
 
 For the current machine only, when the user has explicitly attached a
 `local-maintainer` profile and the private workspace is present, the convenience
