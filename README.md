@@ -6,8 +6,8 @@ Public-safe starter toolkit and connector client for AI agents that need a
 governed asset service. It can review user-submitted asset candidates before
 they enter a private registry, and it can create public-safe requests for a
 private asset backend that serves metadata, recommendations, and approved
-export packages to creator systems such as website builders and presentation
-generators.
+export packages to any system that needs governed design assets. Website and
+presentation builders are common examples, not the boundary of the service.
 
 This repository intentionally contains only reusable tooling, schemas,
 synthetic fixtures, and generic documentation. It does not contain real asset
@@ -138,7 +138,7 @@ This creates ignored local config at:
 After setup, use the public toolkit to create and validate public-safe requests,
 then use the private workspace `downloaded-assets\tools\assetctl.ps1` connector
 commands for real metadata search, materialization proposals, and approved
-package or PPTX export. See
+package or output-specific export. See
 [`docs/PRIVATE_WORKSPACE_CONNECTOR_SETUP.md`](docs/PRIVATE_WORKSPACE_CONNECTOR_SETUP.md).
 
 For a creator AI handoff, start with

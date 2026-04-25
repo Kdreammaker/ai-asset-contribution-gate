@@ -1,11 +1,14 @@
-# Asset Service Handoff For Creator AI
+# Asset Service Handoff For Asset-Consuming AI
 
 This repository is the public-safe client for an asset service. It is not a PPT
 generation system and it is not a raw asset dump.
 
-Use it when your AI system builds websites, slide decks, reports, dashboards,
-marketing pages, or other creative outputs and needs governed asset
-recommendations from the private asset backend.
+Use it when your AI system, application, automation, or content pipeline needs
+governed design assets. Websites and slide decks are examples, but the service
+is not limited to them. The same connector pattern applies to reports,
+dashboards, documents, apps, product UI, marketing material, education content,
+internal tools, and any other output surface that needs assets selected under
+the registry, license, risk, and media-boundary rules.
 
 ## Current Service Snapshot
 
@@ -42,8 +45,8 @@ font
 deck_component
 ```
 
-For a PPT or website generation system, request the assets you need by intent,
-audience, tone, content domain, locale, and output surface. Good requests are
+For any asset-consuming system, request the assets you need by intent, audience,
+tone, content domain, locale, medium, and output surface. Good requests are
 specific, but they do not ask for private file paths or Drive IDs.
 
 Example request intent:
@@ -79,7 +82,7 @@ If the private workspace is available on the same machine, connect it:
 The setup command creates `.assetctl-private-connector.local.json`. That file is
 ignored by Git and must stay local.
 
-## Creator AI Workflow
+## Asset-Consuming AI Workflow
 
 1. Create a public-safe request in this repo.
 
@@ -124,13 +127,17 @@ exported files back to their source metadata.
 .\downloaded-assets\tools\assetctl.ps1 connector-build-ppt-export
 ```
 
+Some private backends may expose output-specific export commands, such as a PPTX
+package builder. Treat those as one export format, not as the identity of the
+asset service.
+
 ## Copyright And Media Boundary
 
 The asset service treats slide photos, embedded raster images, and JPG preview
 files as non-reusable reference evidence. Do not extract, reuse, copy, or publish
 those images as design assets.
 
-Reusable presentation assets come from:
+Reusable design assets come from:
 
 ```text
 shape/vector metadata derived from slide geometry
@@ -170,21 +177,22 @@ generated private reports
 embedded slide photos or JPG previews as reusable assets
 ```
 
-## Minimal Prompt For A PPT-Service AI
+## Minimal Prompt For An Asset-Consuming AI
 
-Use this prompt when handing the asset service to an AI that is building a PPT
-service:
+Use this prompt when handing the asset service to another AI:
 
 ```text
-You are building a PPT service. Use https://github.com/Kdreammaker/ai-asset-contribution-gate
-as the public-safe asset-service client, not as a PPT generator. Read
+You are building or operating a system that needs governed design assets. Use
+https://github.com/Kdreammaker/ai-asset-contribution-gate as the public-safe
+asset-service client, not as an asset dump or generator. Read
 docs/ASSET_SERVICE_HANDOFF_FOR_CREATOR_AI.md and docs/PRIVATE_WORKSPACE_CONNECTOR_SETUP.md.
 Validate fixtures, create metadata-only asset requests with tools/connector-client.ps1,
 and call the private backend assetctl connector commands only through the configured
 private workspace. Request palette, icon, illustration, font, and deck_component
-assets by intent. Do not copy private registry exports, Drive IDs, approval
-records, raw assets, local paths, embedded slide photos, or JPG previews into the
-public repo or generated output. Use connector metadata, semantic_context,
-template_media_policy, license_action, risk_level, and approved package manifests
-to decide what can be used.
+assets by intent, domain, audience, medium, and output surface. PPT and website
+requests are examples only. Do not copy private registry exports, Drive IDs,
+approval records, raw assets, local paths, embedded slide photos, or JPG
+previews into the public repo or generated output. Use connector metadata,
+semantic_context, template_media_policy, license_action, risk_level, and
+approved package manifests to decide what can be used.
 ```
