@@ -65,6 +65,15 @@ function Protect-PathValue {
     return "[redacted:$Label]"
 }
 
+function Test-AccessKeyIdLooksSecret {
+    param([string]$Value)
+    if ([string]::IsNullOrWhiteSpace($Value)) { return $false }
+    if ($Value -match '^(sk-|xox|ghp_|github_pat_|glpat-|AKIA)') { return $true }
+    if ($Value -match '^[A-Fa-f0-9]{32,}$') { return $true }
+    if ($Value.Length -gt 128) { return $true }
+    return $false
+}
+
 function Protect-PrivateDetails {
     param([object]$Value)
 
@@ -153,6 +162,12 @@ if ($ConnectorMode -eq 'local-maintainer' -and [string]::IsNullOrWhiteSpace($Pri
 if ($ConnectorMode -eq 'external-safe-proxy' -and [string]::IsNullOrWhiteSpace($ConnectorProxyUrl) -and [string]::IsNullOrWhiteSpace($AccessKeyId)) {
     $errors += 'external-safe-proxy mode requires -ConnectorProxyUrl or -AccessKeyId metadata approved by the user. Do not store access-key secrets in this public toolkit.'
     $result = New-SetupResult -Ok $false -Errors $errors -Warnings $warnings -NextRecommendedAction 'Use user-authorized scoped connector proxy metadata or an access-key identifier, not a secret.'
+    $result | ConvertTo-Json -Depth 12
+    exit 1
+}
+if (Test-AccessKeyIdLooksSecret -Value $AccessKeyId) {
+    $errors += 'AccessKeyId looks like a secret token. Store only a non-secret key identifier here.'
+    $result = New-SetupResult -Ok $false -Errors $errors -Warnings $warnings -NextRecommendedAction 'Use a key identifier, not a secret value.'
     $result | ConvertTo-Json -Depth 12
     exit 1
 }

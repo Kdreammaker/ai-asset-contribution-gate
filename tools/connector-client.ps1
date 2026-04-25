@@ -1,5 +1,5 @@
 param(
-    [ValidateSet('validate-fixtures', 'new-request', 'validate-request', 'validate-response', 'search-metadata')]
+    [ValidateSet('validate-fixtures', 'new-request', 'bundle-request', 'validate-request', 'validate-bundle', 'validate-response', 'validate-handoff', 'search-metadata')]
     [string]$Operation = 'validate-fixtures',
     [string]$Root = (Resolve-Path (Join-Path $PSScriptRoot '..')).Path,
     [string]$InputPath = '',
@@ -51,12 +51,29 @@ switch ($Operation) {
         if (-not [string]::IsNullOrWhiteSpace($Intent)) { $argsList += @('--intent', $Intent) }
         if (-not [string]::IsNullOrWhiteSpace($OutputPath)) { $argsList += @('--output-path', $OutputPath) }
     }
+    'bundle-request' {
+        if ([string]::IsNullOrWhiteSpace($InputPath) -and [string]::IsNullOrWhiteSpace($Query)) { throw 'bundle-request requires -InputPath or -Query.' }
+        if (-not [string]::IsNullOrWhiteSpace($InputPath)) { $argsList += @('--input-path', $InputPath) }
+        if (-not [string]::IsNullOrWhiteSpace($Query)) { $argsList += @('--query', $Query) }
+        $argsList += @('--request-type', $RequestType, '--locale', $Locale, '--asset-types', $AssetTypes, '--delivery-mode', $DeliveryMode, '--limit', ([string]$Limit))
+        if (-not [string]::IsNullOrWhiteSpace($RequestId)) { $argsList += @('--request-id', $RequestId) }
+        if (-not [string]::IsNullOrWhiteSpace($Intent)) { $argsList += @('--intent', $Intent) }
+        if (-not [string]::IsNullOrWhiteSpace($OutputPath)) { $argsList += @('--output-path', $OutputPath) }
+    }
     'validate-request' {
         if ([string]::IsNullOrWhiteSpace($InputPath)) { throw 'validate-request requires -InputPath.' }
         $argsList += @('--input-path', $InputPath)
     }
+    'validate-bundle' {
+        if ([string]::IsNullOrWhiteSpace($InputPath)) { throw 'validate-bundle requires -InputPath.' }
+        $argsList += @('--input-path', $InputPath)
+    }
     'validate-response' {
         if ([string]::IsNullOrWhiteSpace($InputPath)) { throw 'validate-response requires -InputPath.' }
+        $argsList += @('--input-path', $InputPath)
+    }
+    'validate-handoff' {
+        if ([string]::IsNullOrWhiteSpace($InputPath)) { throw 'validate-handoff requires -InputPath.' }
         $argsList += @('--input-path', $InputPath)
     }
     'search-metadata' {

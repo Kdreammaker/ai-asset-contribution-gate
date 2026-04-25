@@ -45,6 +45,15 @@ function Protect-Value {
     return "[redacted:$Label]"
 }
 
+function Test-AccessKeyIdLooksSecret {
+    param([string]$Value)
+    if ([string]::IsNullOrWhiteSpace($Value)) { return $false }
+    if ($Value -match '^(sk-|xox|ghp_|github_pat_|glpat-|AKIA)') { return $true }
+    if ($Value -match '^[A-Fa-f0-9]{32,}$') { return $true }
+    if ($Value.Length -gt 128) { return $true }
+    return $false
+}
+
 function Write-Utf8File {
     param([string]$Path, [string]$Text)
     $parent = Split-Path -Parent $Path
@@ -175,7 +184,7 @@ elseif ($Operation -eq 'authorize') {
     if ($ConnectorMode -eq 'external-safe-proxy' -and [string]::IsNullOrWhiteSpace($ConnectorProxyUrl) -and [string]::IsNullOrWhiteSpace($AccessKeyId)) {
         $errors += 'external-safe-proxy authorization requires -ConnectorProxyUrl or -AccessKeyId metadata.'
     }
-    if ($AccessKeyId -match '^(sk-|xox|ghp_|github_pat_)') {
+    if (Test-AccessKeyIdLooksSecret -Value $AccessKeyId) {
         $errors += 'AccessKeyId looks like a secret token. Store only a non-secret key identifier here.'
     }
     if ($errors.Count -eq 0) {

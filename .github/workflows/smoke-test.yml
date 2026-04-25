@@ -49,6 +49,17 @@ jobs:
         shell: pwsh
         run: .\tools\connector-client.ps1 -Operation validate-fixtures
 
+      - name: Verify public request bundle flow
+        shell: pwsh
+        run: |
+          New-Item -ItemType Directory -Force -Path .\reports\connector | Out-Null
+          $request = .\tools\connector-client.ps1 -Operation new-request -Query "Korean B2B deck KPI assets" -AssetTypes "palette,icon,deck_component,font" -OutputPath ".\reports\connector\ci-request.json" | ConvertFrom-Json
+          if (-not $request.ok) { throw "Request creation failed." }
+          $bundle = .\tools\connector-client.ps1 -Operation bundle-request -InputPath ".\reports\connector\ci-request.json" -OutputPath ".\reports\connector\ci-request-bundle.json" | ConvertFrom-Json
+          if (-not $bundle.ok) { throw "Bundle creation failed." }
+          $validateBundle = .\tools\connector-client.ps1 -Operation validate-bundle -InputPath ".\reports\connector\ci-request-bundle.json" | ConvertFrom-Json
+          if (-not $validateBundle.ok) { throw "Bundle validation failed." }
+
       - name: Verify public bootstrap
         shell: pwsh
         run: .\tools\bootstrap-workspace.ps1 -SkipUpdateCheck
@@ -60,6 +71,10 @@ jobs:
           if (-not $status.ok) { throw "Initial profile status failed." }
           $auth = .\tools\user-profile.ps1 -Operation authorize -ProfileName ci-fixture -ConnectorMode external-safe-proxy -ConnectorProxyUrl "https://connector.example.invalid/assetctl" -AccessKeyId "ci-key-id" -AcceptNotice | ConvertFrom-Json
           if (-not $auth.ok) { throw "Profile authorize failed." }
+          $secretRaw = & pwsh -NoProfile -File .\tools\user-profile.ps1 -Operation authorize -ProfileName ci-secret -ConnectorMode external-safe-proxy -AccessKeyId "sk-test-secret" -AcceptNotice
+          if ($LASTEXITCODE -ne 1) { throw "Expected secret-like AccessKeyId rejection to exit 1." }
+          $secretReject = ($secretRaw -join [Environment]::NewLine) | ConvertFrom-Json
+          if ($secretReject.ok) { throw "Expected secret-like AccessKeyId to be rejected." }
           $attach = .\tools\user-profile.ps1 -Operation attach -ProfileName ci-fixture | ConvertFrom-Json
           if (-not $attach.ok) { throw "Profile attach failed." }
           if (-not $attach.outputs.guide_path) { throw "Expected post-connection guide path." }

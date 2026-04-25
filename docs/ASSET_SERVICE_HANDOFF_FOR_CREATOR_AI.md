@@ -78,6 +78,23 @@ Validate the public client:
 .\tools\candidate-gate.ps1 -Operation validate-fixtures -AssetsRoot .
 ```
 
+If this PC or AI does not have the private repository connected, stay in the
+public-only local workflow. Create a request and request bundle, then send only
+the bundle to the private asset backend owner or approved handoff channel:
+
+```powershell
+.\tools\connector-client.ps1 -Operation new-request -Query "Korean capital market reform briefing assets: KOSPI KOSDAQ finance chart modules, timeline icons, executive palette, Korean fonts" -AssetTypes "palette,icon,deck_component,font" -DeliveryMode metadata_only -Limit 12 -OutputPath ".\reports\asset-service-request.json"
+.\tools\connector-client.ps1 -Operation bundle-request -InputPath ".\reports\asset-service-request.json" -OutputPath ".\reports\asset-service-request-bundle.json"
+.\tools\connector-client.ps1 -Operation validate-bundle -InputPath ".\reports\asset-service-request-bundle.json"
+```
+
+When the private side returns a public-safe handoff response, validate it before
+using the metadata:
+
+```powershell
+.\tools\connector-client.ps1 -Operation validate-handoff -InputPath ".\reports\asset-service-response-handoff.json"
+```
+
 If private access is available, authorize and attach a connector profile. This
 shows the connection notice, records a local audit event, and writes only
 ignored local runtime config in this clone:
@@ -108,6 +125,10 @@ external callers.
 ```powershell
 .\downloaded-assets\tools\assetctl.ps1 connector-search -InputPath ".\downloaded-assets\connector\fixtures\asset-request.example.json"
 ```
+
+For another PC, this private command runs on the private backend side after
+receiving a public request bundle. The other PC should not clone the private
+repo or receive private local paths.
 
 3. Read the connector response. Internal maintainer responses may include raw
 private identifiers. External-safe responses should consume:
@@ -205,12 +226,13 @@ https://github.com/Kdreammaker/ai-asset-contribution-gate as the public-safe
 asset-service client, not as an asset dump or generator. Read
 docs/ASSET_SERVICE_HANDOFF_FOR_CREATOR_AI.md and docs/PRIVATE_WORKSPACE_CONNECTOR_SETUP.md.
 Validate fixtures, create metadata-only asset requests with tools/connector-client.ps1,
-and call the private backend assetctl connector commands only through the configured
-private workspace. Request palette, icon, illustration, font, and deck_component
+create request bundles for other-PC handoff, and call the private backend
+assetctl connector commands only from an authorized private workspace or
+controlled proxy. Request palette, icon, illustration, font, and deck_component
 assets by intent, domain, audience, medium, and output surface. PPT and website
 requests are examples only. Do not copy private registry exports, Drive IDs,
 approval records, raw assets, local paths, embedded slide photos, or JPG
 previews into the public repo or generated output. Use connector metadata,
-semantic_context, template_media_policy, license_action, risk_level, and
-approved package manifests to decide what can be used.
+template_media_policy, license_action, risk_level, and approved package
+manifests to decide what can be used.
 ```

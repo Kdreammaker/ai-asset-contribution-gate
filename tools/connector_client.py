@@ -22,6 +22,8 @@ FORBIDDEN_PUBLIC_RESPONSE_FIELDS = {
     "manifest_path",
     "semantic_context",
 }
+PUBLIC_BUNDLE_TYPE = "assetctl_public_request_bundle"
+PUBLIC_HANDOFF_TYPE = "assetctl_public_response_handoff"
 
 
 def utc_now() -> str:
@@ -76,6 +78,16 @@ def listify(value: Any) -> list[Any]:
     return [value]
 
 
+def relative_or_name(path_text: str) -> str:
+    if not path_text:
+        return ""
+    path = Path(path_text)
+    try:
+        return path.resolve().relative_to(Path.cwd().resolve()).as_posix()
+    except Exception:  # noqa: BLE001
+        return path.name
+
+
 def required_keys_for_fixture(name: str) -> list[str]:
     mapping = {
         "asset-request.example.json": ["schema_version", "request_id", "request_type"],
@@ -117,6 +129,56 @@ def validate_response_payload(payload: dict[str, Any]) -> list[str]:
         leaked_fields = sorted(FORBIDDEN_PUBLIC_RESPONSE_FIELDS.intersection(row.keys()))
         if leaked_fields:
             errors.append(f"public response result {index} contains private fields: {', '.join(leaked_fields)}")
+    return errors
+
+
+def find_forbidden_fields(value: Any, prefix: str = "$") -> list[str]:
+    found: list[str] = []
+    if isinstance(value, dict):
+        for key, child in value.items():
+            child_path = f"{prefix}.{key}"
+            if key in FORBIDDEN_PUBLIC_RESPONSE_FIELDS:
+                found.append(child_path)
+            if key in {"private_workspace_root", "private_assetctl", "local_absolute_path", "access_key_secret"}:
+                found.append(child_path)
+            found.extend(find_forbidden_fields(child, child_path))
+    elif isinstance(value, list):
+        for index, child in enumerate(value):
+            found.extend(find_forbidden_fields(child, f"{prefix}[{index}]"))
+    return found
+
+
+def validate_public_bundle_payload(payload: dict[str, Any]) -> list[str]:
+    errors: list[str] = []
+    if payload.get("schema_version") != SCHEMA_VERSION:
+        errors.append("bundle schema_version must be 1.0")
+    if payload.get("bundle_type") != PUBLIC_BUNDLE_TYPE:
+        errors.append(f"bundle_type must be {PUBLIC_BUNDLE_TYPE}")
+    request = payload.get("request")
+    if not isinstance(request, dict):
+        errors.append("bundle request must be an object")
+    else:
+        errors.extend(validate_request_payload(request))
+    forbidden = find_forbidden_fields(payload)
+    if forbidden:
+        errors.append("bundle contains private-only fields: " + ", ".join(sorted(set(forbidden))))
+    return errors
+
+
+def validate_public_handoff_payload(payload: dict[str, Any]) -> list[str]:
+    errors: list[str] = []
+    if payload.get("schema_version") != SCHEMA_VERSION:
+        errors.append("handoff schema_version must be 1.0")
+    if payload.get("handoff_type") != PUBLIC_HANDOFF_TYPE:
+        errors.append(f"handoff_type must be {PUBLIC_HANDOFF_TYPE}")
+    response = payload.get("response")
+    if not isinstance(response, dict):
+        errors.append("handoff response must be an object")
+    else:
+        errors.extend(validate_response_payload(response))
+    forbidden = find_forbidden_fields(payload)
+    if forbidden:
+        errors.append("handoff contains private-only fields: " + ", ".join(sorted(set(forbidden))))
     return errors
 
 
@@ -221,6 +283,70 @@ def command_new_request(args: argparse.Namespace) -> dict[str, Any]:
     return output
 
 
+def build_request_from_args(args: argparse.Namespace) -> dict[str, Any]:
+    if args.input_path:
+        payload = read_json(Path(args.input_path))
+        if not isinstance(payload, dict):
+            raise ValueError("input request must be a JSON object")
+        return payload
+    request_args = argparse.Namespace(
+        request_id=args.request_id,
+        request_type=args.request_type,
+        query=args.query,
+        intent=args.intent,
+        locale=args.locale,
+        asset_types=args.asset_types,
+        delivery_mode=args.delivery_mode,
+        limit=args.limit,
+        output_path="",
+    )
+    return command_new_request(request_args)["request"]
+
+
+def command_bundle_request(args: argparse.Namespace) -> dict[str, Any]:
+    request = build_request_from_args(args)
+    bundle = {
+        "schema_version": SCHEMA_VERSION,
+        "bundle_type": PUBLIC_BUNDLE_TYPE,
+        "bundle_id": stable_id("public-bundle", request),
+        "generated_at_utc": utc_now(),
+        "source": {
+            "toolkit": "ai-asset-contribution-gate",
+            "local_source_path": relative_or_name(args.input_path),
+        },
+        "request": request,
+        "safety": {
+            "public_only_local_bundle": True,
+            "private_repo_connected": False,
+            "contains_private_paths": False,
+            "contains_drive_ids": False,
+            "contains_access_key_secret": False,
+            "contains_raw_assets": False,
+        },
+        "handoff": {
+            "expected_private_operation": "connector-search",
+            "expected_public_response_type": PUBLIC_HANDOFF_TYPE,
+            "notes": [
+                "Send this bundle to the private asset backend owner or approved handoff channel.",
+                "Do not add private paths, Drive IDs, raw assets, or secrets to this bundle.",
+            ],
+        },
+    }
+    errors = validate_public_bundle_payload(bundle)
+    output = {
+        "ok": len(errors) == 0,
+        "operation_type": "connector_bundle_request",
+        "bundle_id": bundle["bundle_id"],
+        "request_id": request.get("request_id", ""),
+        "bundle": bundle,
+        "errors": errors,
+    }
+    if args.output_path:
+        write_json(Path(args.output_path), bundle)
+        output["output_path"] = args.output_path
+    return output
+
+
 def command_validate_request(args: argparse.Namespace) -> dict[str, Any]:
     payload = read_json(Path(args.input_path))
     errors = validate_request_payload(payload)
@@ -228,6 +354,18 @@ def command_validate_request(args: argparse.Namespace) -> dict[str, Any]:
         "ok": len(errors) == 0,
         "operation_type": "connector_validate_request",
         "request_id": payload.get("request_id", ""),
+        "errors": errors,
+    }
+
+
+def command_validate_bundle(args: argparse.Namespace) -> dict[str, Any]:
+    payload = read_json(Path(args.input_path))
+    errors = validate_public_bundle_payload(payload)
+    return {
+        "ok": len(errors) == 0,
+        "operation_type": "connector_validate_bundle",
+        "bundle_id": payload.get("bundle_id", ""),
+        "request_id": (payload.get("request") or {}).get("request_id", "") if isinstance(payload.get("request"), dict) else "",
         "errors": errors,
     }
 
@@ -293,6 +431,18 @@ def command_validate_response(args: argparse.Namespace) -> dict[str, Any]:
     }
 
 
+def command_validate_handoff(args: argparse.Namespace) -> dict[str, Any]:
+    payload = read_json(Path(args.input_path))
+    errors = validate_public_handoff_payload(payload)
+    return {
+        "ok": len(errors) == 0,
+        "operation_type": "connector_validate_handoff",
+        "bundle_id": payload.get("bundle_id", ""),
+        "request_id": payload.get("request_id", ""),
+        "errors": errors,
+    }
+
+
 def build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(description="Public-safe connector request and fixture helper.")
     sub = parser.add_subparsers(dest="operation", required=True)
@@ -313,13 +463,34 @@ def build_parser() -> argparse.ArgumentParser:
     new_request.add_argument("--output-path", default="")
     new_request.set_defaults(func=command_new_request)
 
+    bundle = sub.add_parser("bundle-request")
+    bundle.add_argument("--input-path", default="")
+    bundle.add_argument("--request-type", default="asset_search", choices=["asset_search", "asset_resolve", "manifest_export", "deck_generation_dry_run"])
+    bundle.add_argument("--request-id", default="")
+    bundle.add_argument("--query", default="")
+    bundle.add_argument("--intent", default="")
+    bundle.add_argument("--locale", default="auto")
+    bundle.add_argument("--asset-types", default="")
+    bundle.add_argument("--delivery-mode", default="metadata_only", choices=["metadata_only", "manifest_only", "materialization_proposal"])
+    bundle.add_argument("--limit", type=int, default=10)
+    bundle.add_argument("--output-path", default="")
+    bundle.set_defaults(func=command_bundle_request)
+
     validate_request = sub.add_parser("validate-request")
     validate_request.add_argument("--input-path", required=True)
     validate_request.set_defaults(func=command_validate_request)
 
+    validate_bundle = sub.add_parser("validate-bundle")
+    validate_bundle.add_argument("--input-path", required=True)
+    validate_bundle.set_defaults(func=command_validate_bundle)
+
     validate_response = sub.add_parser("validate-response")
     validate_response.add_argument("--input-path", required=True)
     validate_response.set_defaults(func=command_validate_response)
+
+    validate_handoff = sub.add_parser("validate-handoff")
+    validate_handoff.add_argument("--input-path", required=True)
+    validate_handoff.set_defaults(func=command_validate_handoff)
 
     search = sub.add_parser("search-metadata")
     search.add_argument("--input-path", required=True)

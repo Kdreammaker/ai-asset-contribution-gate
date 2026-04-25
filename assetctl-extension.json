@@ -2,7 +2,7 @@
   "schema_version": "1.0",
   "extension_id": "ai-asset-contribution-gate",
   "name": "AI Asset Contribution Safety Gate",
-  "version": "v0.3.4",
+  "version": "v0.3.5",
   "repository": "Kdreammaker/ai-asset-contribution-gate",
   "public_safe_by_default": true,
   "default_mode": "fixture-only",
@@ -26,12 +26,17 @@
     "user_profile": "./tools/user-profile.ps1",
     "candidate_validate": "./tools/candidate-gate.ps1 -Operation validate-fixtures -AssetsRoot .",
     "connector_validate": "./tools/connector-client.ps1 -Operation validate-fixtures",
+    "connector_bundle_request": "./tools/connector-client.ps1 -Operation bundle-request",
+    "connector_validate_handoff": "./tools/connector-client.ps1 -Operation validate-handoff",
+    "local_private_connector": "./tools/invoke-private-connector.ps1",
     "private_attach": "./tools/user-profile.ps1 -Operation authorize -AcceptNotice ..."
   },
   "safe_capabilities": [
     "validate synthetic candidate fixtures",
     "validate public connector schemas and fixtures",
     "create public-safe connector request files",
+    "create public-only request bundles for private-side handoff",
+    "validate returned public-safe handoff responses",
     "search public-safe metadata fixtures",
     "run public-safe leak scans",
     "check release updates when explicitly requested"

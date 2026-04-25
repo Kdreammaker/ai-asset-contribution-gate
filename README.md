@@ -123,6 +123,7 @@ Build and validate public-safe requests for a private asset backend:
 .\tools\connector-client.ps1 -Operation validate-fixtures
 .\tools\connector-client.ps1 -Operation new-request -CheckUpdates -Query "Korean capital market reform briefing assets: KOSPI KOSDAQ chart modules, finance icons, restrained executive palette" -AssetTypes "palette,icon,deck_component,font" -OutputPath ".\reports\connector-request.json"
 .\tools\connector-client.ps1 -Operation validate-request -InputPath ".\reports\connector-request.json"
+.\tools\connector-client.ps1 -Operation bundle-request -InputPath ".\reports\connector-request.json" -OutputPath ".\reports\connector-request-bundle.json"
 ```
 
 Search a public-safe metadata fixture or an approved private export metadata
@@ -136,6 +137,28 @@ The connector client does not contain real assets, private manifests, private
 storage references, approval evidence, or generated private reports. Treat broad
 requests such as "all assets", "dump", or empty browsing as unsupported for
 external use; ask for a specific design intent instead.
+
+For another PC or AI that does not have the private repository connected, the
+public-only handoff is the safe default: create a request bundle locally, send
+that bundle to the private asset backend owner or approved handoff channel, then
+validate the returned public-safe handoff JSON:
+
+```powershell
+.\tools\connector-client.ps1 -Operation validate-bundle -InputPath ".\reports\connector-request-bundle.json"
+.\tools\connector-client.ps1 -Operation validate-handoff -InputPath ".\reports\connector-response-handoff.json"
+```
+
+For the current machine only, when the user has explicitly attached a
+`local-maintainer` profile and the private workspace is present, the convenience
+runner can dispatch through the ignored local connector config:
+
+```powershell
+.\tools\invoke-private-connector.ps1 -Operation search -InputPath ".\reports\connector-request.json"
+```
+
+Do not use this local runner as the other-PC default; other PCs should use the
+request-bundle handoff unless they have their own user-authorized private
+workspace or controlled proxy.
 
 ## Private Workspace Setup For AI Agents
 

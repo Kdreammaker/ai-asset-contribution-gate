@@ -73,6 +73,37 @@ Those files may contain local runtime hints and must remain untracked. The
 user-authorized profile and connection audit log are stored outside this
 repository under the user's local AssetCtl config location.
 
+## Other-PC Public-Only Handoff
+
+A different PC or AI is not expected to have the private repository connected.
+For that environment, do not authorize a local maintainer path unless the
+private workspace is actually present and the user approves that local access.
+
+Use a public-only request bundle instead:
+
+```powershell
+.\tools\connector-client.ps1 -Operation new-request -Query "Korean capital market reform briefing assets: KOSPI KOSDAQ finance chart modules, timeline icons, executive palette, Korean fonts" -AssetTypes "palette,icon,deck_component,font" -OutputPath ".\reports\connector-request.json"
+.\tools\connector-client.ps1 -Operation bundle-request -InputPath ".\reports\connector-request.json" -OutputPath ".\reports\connector-request-bundle.json"
+.\tools\connector-client.ps1 -Operation validate-bundle -InputPath ".\reports\connector-request-bundle.json"
+```
+
+The private backend owner processes that bundle and returns a public-safe
+handoff JSON. Validate the returned file locally:
+
+```powershell
+.\tools\connector-client.ps1 -Operation validate-handoff -InputPath ".\reports\connector-response-handoff.json"
+```
+
+For the current owner machine only, an explicitly attached `local-maintainer`
+profile can use the convenience runner:
+
+```powershell
+.\tools\invoke-private-connector.ps1 -Operation search -InputPath ".\reports\connector-request.json"
+```
+
+This runner is not the other-PC default and refuses non-local-maintainer
+profiles.
+
 ## What Setup Verifies
 
 The setup command checks:
