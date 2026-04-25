@@ -14,6 +14,11 @@ synthetic fixtures, and generic documentation. It does not contain real asset
 files, private registry exports, generated reports, Drive linkage, worklogs,
 approval records, connector evidence, or local machine paths.
 
+Public installs are fixture-only by default. Cloning this repository does not
+grant private backend access, and public requests must not claim their own trust
+tier. Private access requires an owner-controlled connector configuration,
+scoped access key, or controlled proxy.
+
 ## Included
 
 ```text
@@ -117,13 +122,16 @@ file that the private workspace gives you:
 ```
 
 The connector client does not contain real assets, private manifests, private
-storage references, approval evidence, or generated private reports.
+storage references, approval evidence, or generated private reports. Treat broad
+requests such as "all assets", "dump", or empty browsing as unsupported for
+external use; ask for a specific design intent instead.
 
 ## Private Workspace Setup For AI Agents
 
 When an AI agent installs this public toolkit and needs real asset search or
-approved asset export, connect it to the private workspace instead of copying
-private data into this repo:
+approved asset export, connect it through the owner-provided setup path instead
+of copying private data into this repo or exposing raw private workspace paths to
+untrusted agents:
 
 ```powershell
 .\tools\setup-private-connector.ps1 -PrivateWorkspaceRoot "<path-to-private-workspace>"
@@ -138,7 +146,9 @@ This creates ignored local config at:
 After setup, use the public toolkit to create and validate public-safe requests,
 then use the private workspace `downloaded-assets\tools\assetctl.ps1` connector
 commands for real metadata search, materialization proposals, and approved
-package or output-specific export. See
+package or output-specific export. Non-internal callers should receive redacted
+connector responses and opaque result IDs when that backend mode is enabled; raw
+private identifiers remain private-backend material. See
 [`docs/PRIVATE_WORKSPACE_CONNECTOR_SETUP.md`](docs/PRIVATE_WORKSPACE_CONNECTOR_SETUP.md).
 
 For a creator AI handoff, start with

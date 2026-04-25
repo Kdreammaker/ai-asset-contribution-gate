@@ -7,6 +7,11 @@ records, or local machine paths.
 To use the real asset library, connect this public toolkit to a private
 workspace that owns the asset registry and connector runtime.
 
+Public installs are fixture-only by default. A public request file is not an
+access grant, and a request-body `trust_tier` value is not authoritative. The
+private backend, a scoped access key, or a controlled proxy must assign the
+effective connector boundary.
+
 ## AI Install Prompt
 
 Give a new AI agent this instruction:
@@ -16,9 +21,11 @@ Install the public AI asset toolkit, then connect it to my private asset
 workspace using the public repo instructions. Do not copy private registry
 files, raw assets, Drive IDs, approval records, generated reports, or local
 absolute paths into the public repo. Use tools/setup-private-connector.ps1 with
-the private workspace path, validate the connector, and use the private
-workspace assetctl commands for real search, materialization proposals, and
-approved package export.
+the private workspace path only when I approve local maintainer access,
+validate the connector, and use the private workspace assetctl commands for real
+search, materialization proposals, and approved package export. For untrusted or
+external agents, use a scoped connector, access key, or controlled proxy instead
+of sharing the raw private workspace path.
 ```
 
 ## Setup Command
@@ -75,6 +82,11 @@ Run real metadata search in the private workspace:
 .\downloaded-assets\tools\assetctl.ps1 connector-search -InputPath ".\downloaded-assets\connector\fixtures\asset-request.example.json"
 ```
 
+Broad "all assets", empty browse, dump/export-everything, and systematic
+enumeration requests should be rejected or throttled by the private backend.
+Use specific design intents and server-issued result identifiers for follow-up
+resolve/materialization flows when the backend requires them.
+
 For binary use, generate a proposal first:
 
 ```powershell
@@ -113,6 +125,8 @@ size_bytes
 ```
 
 AI agents should read that manifest before claiming which assets were used.
+Do not publish the manifest, raw private IDs, local paths, Drive IDs, or package
+evidence back into this public repository.
 
 ## Public And Private Boundary
 

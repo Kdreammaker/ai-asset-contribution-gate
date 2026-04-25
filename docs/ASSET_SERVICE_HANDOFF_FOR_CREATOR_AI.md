@@ -33,6 +33,10 @@ metadata graph records: 38,236
 Ten `template_pack_016` slide references remain unpromoted because no matching
 JPG classification authority file exists for them.
 
+This public snapshot is descriptive, not an entitlement to enumerate the private
+backend. Public installs run against synthetic fixtures until the owner provides
+a scoped connector configuration, access key, or controlled proxy.
+
 ## What You Can Request
 
 Ask the asset service for metadata-first recommendations:
@@ -73,14 +77,16 @@ Validate the public client:
 .\tools\candidate-gate.ps1 -Operation validate-fixtures -AssetsRoot .
 ```
 
-If the private workspace is available on the same machine, connect it:
+If the private workspace is available on the same machine and the owner approves
+local maintainer access, connect it:
 
 ```powershell
 .\tools\setup-private-connector.ps1 -PrivateWorkspaceRoot "<path-to-private-workspace>"
 ```
 
 The setup command creates `.assetctl-private-connector.local.json`. That file is
-ignored by Git and must stay local.
+ignored by Git and must stay local. Do not give raw private workspace paths to
+untrusted AIs; use a scoped connector or controlled proxy for external callers.
 
 ## Asset-Consuming AI Workflow
 
@@ -91,26 +97,32 @@ ignored by Git and must stay local.
 .\tools\connector-client.ps1 -Operation validate-request -InputPath ".\reports\asset-service-request.json"
 ```
 
-2. Run real metadata search in the private backend.
+2. Run real metadata search through the approved private backend boundary.
 
 ```powershell
 .\downloaded-assets\tools\assetctl.ps1 connector-search -InputPath ".\downloaded-assets\connector\fixtures\asset-request.example.json"
 ```
 
-3. Read the connector response. Consume:
+3. Read the connector response. Internal maintainer responses may include raw
+private identifiers. External-safe responses should consume:
 
 ```text
-asset_uid
+result_id
 asset_type
 name
 license_class
 license_action
 risk_level
 usage_groups
-semantic_context
-template_media_policy
+style_summary
+policy_notes
+media_policy_summary
 materialization status
 ```
+
+Do not ask the private backend to dump all records, enumerate categories, or
+resolve guessed private IDs. Use specific design intents and continue from
+server-issued `result_id` values when the backend requires them.
 
 4. If binary files are needed, create a materialization proposal first.
 
