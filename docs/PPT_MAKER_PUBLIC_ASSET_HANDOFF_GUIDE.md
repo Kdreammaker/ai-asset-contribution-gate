@@ -38,7 +38,7 @@ Minimum public-only setup:
 ```powershell
 git clone https://github.com/Kdreammaker/ai-asset-contribution-gate.git assetctl-public-toolkit
 cd assetctl-public-toolkit
-git checkout v0.3.8
+git checkout v0.3.10
 .\tools\bootstrap-workspace.ps1
 .\tools\assetctl-doctor.ps1 -SkipNetwork
 ```
