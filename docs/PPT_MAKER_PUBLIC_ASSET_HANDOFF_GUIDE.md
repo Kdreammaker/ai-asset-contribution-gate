@@ -21,14 +21,16 @@ Your job:
 2. Send those bundles through the approved handoff channel to the asset service
    owner.
 3. Validate the returned public handoff files.
-4. Use the returned metadata to choose fonts, palettes, and layout/deck
-   component direction.
+4. Use the returned metadata to choose fonts, palettes, layout/deck component
+   direction, and any slide-specific visual assets.
 5. Assemble the PPT yourself.
 
 The asset service can return public-safe metadata, opaque result_id values,
 license/policy notes, and approved package handoffs when separately approved.
-It does not return private paths, Drive IDs, private registry dumps, generated
-private reports, or raw unapproved assets.
+It can recommend and, through an approved package/materialization flow, provide
+approved files for icons, vector illustrations, fonts, and other explicitly
+approved visual assets. It does not return private paths, Drive IDs, private
+registry dumps, generated private reports, or raw unapproved assets.
 ```
 
 Minimum public-only setup:
@@ -58,6 +60,29 @@ reports/connector/ppt-metadata/ppt-assets-palettes-bundle.json
 reports/connector/ppt-metadata/ppt-assets-layouts-bundle.json
 ```
 
+These three bundles are the recommended starting set, not the full capability
+surface. For slide-specific visuals, create additional narrow request bundles
+with `new-request` and `bundle-request`.
+
+```powershell
+.\tools\connector-client.ps1 -Operation new-request `
+  -Query "KPI risk warning icon for executive dashboard slide" `
+  -AssetTypes "icon" `
+  -DeliveryMode metadata_only `
+  -Limit 3 `
+  -OutputPath ".\reports\connector\ppt-risk-icons-request.json"
+
+.\tools\connector-client.ps1 -Operation bundle-request `
+  -InputPath ".\reports\connector\ppt-risk-icons-request.json" `
+  -OutputPath ".\reports\connector\ppt-risk-icons-bundle.json"
+
+.\tools\connector-client.ps1 -Operation validate-bundle `
+  -InputPath ".\reports\connector\ppt-risk-icons-bundle.json"
+```
+
+Use the same pattern for a specific illustration, approved photo/image need, or
+mockup need. Keep each query specific and low-limit.
+
 After the owner returns handoff JSON files, validate each one:
 
 ```powershell
@@ -77,7 +102,10 @@ Request narrow metadata groups instead of asking for all available assets:
 1. presentation fonts
 2. color palettes
 3. slide layout or deck components
-4. optional icons or illustrations for a specific visual need
+4. icons for a specific slide concept or UI metaphor
+5. vector illustrations for a specific scene
+6. approved photos, images, or mockups only for a specific use case and only
+   when the owner-side service returns them as allowed candidates
 ```
 
 Use low limits. A limit of 3 to 5 per group is usually enough for a slide agent
@@ -98,7 +126,23 @@ deck components. It is not a design preset and does not assemble slides.
 
 The helper is the preferred path for normal PPT maker onboarding. Use manual
 `new-request` plus `bundle-request` commands only when the PPT needs an
-additional specific asset category, such as a single icon or illustration.
+additional specific asset category, such as a small icon set, one vector
+illustration direction, an approved photo/image candidate, or a mockup.
+
+Do not ask for an exhaustive asset list. The safe substitute for a list is a
+capability summary plus narrow candidate shortlists. Supported request types
+may include:
+
+```text
+font
+palette
+deck_component
+icon
+illustration
+photo or image, when the owner-side service marks the result safe for the
+requested use case
+mockup, when available and policy-allowed
+```
 
 ## What The Asset Service Can Return
 
@@ -129,8 +173,24 @@ installation or import instructions
 ```
 
 Approved packages are a separate flow from metadata search. The PPT maker
-should not expect raw font files, raw icons, local private paths, Drive IDs, or
-private registry records from ordinary metadata search.
+should not expect raw font files, raw icons, image binaries, local private
+paths, Drive IDs, or private registry records from ordinary metadata search.
+
+When a returned metadata result is useful, the PPT maker may ask for an approved
+package/materialization flow by `result_id`. Approved packages may contain files
+such as:
+
+```text
+font files with license files
+SVG icon files
+SVG or other approved vector illustration files
+approved raster image/photo files when license and source policy permit them
+manifest and checksum files
+usage or installation instructions
+```
+
+Package approval is owner-side. A metadata result does not automatically grant
+file access.
 
 ## What The PPT Maker Must Do
 
@@ -144,6 +204,7 @@ checking whether required fonts are already installed
 asking the user before installing fonts or changing the local machine
 falling back gracefully when a font cannot be installed
 respecting license_action and policy_notes in the returned handoff
+requesting approved packages by result_id only when actual files are needed
 ```
 
 The asset service should not assemble a full presentation preset unless a
