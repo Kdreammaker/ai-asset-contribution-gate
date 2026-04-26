@@ -126,6 +126,17 @@ Build and validate public-safe requests for a private asset backend:
 .\tools\connector-client.ps1 -Operation bundle-request -InputPath ".\reports\connector-request.json" -OutputPath ".\reports\connector-request-bundle.json"
 ```
 
+For a PPT maker or presentation agent, create separate low-limit metadata
+bundles for fonts, palettes, and deck components:
+
+```powershell
+.\tools\connector-client.ps1 -Operation ppt-metadata-bundles -Topic "Korean business executive KPI presentation" -Limit 3 -OutputDir ".\reports\connector\ppt-metadata"
+```
+
+This is a safe request helper, not a design preset. The PPT maker still owns
+slide assembly, final design choices, font installation UX, and fallbacks.
+See [`docs/PPT_MAKER_PUBLIC_ASSET_HANDOFF_GUIDE.md`](docs/PPT_MAKER_PUBLIC_ASSET_HANDOFF_GUIDE.md).
+
 Search a public-safe metadata fixture or an approved private export metadata
 file that the private workspace gives you:
 
@@ -136,7 +147,10 @@ file that the private workspace gives you:
 The connector client does not contain real assets, private manifests, private
 storage references, approval evidence, or generated private reports. Treat broad
 requests such as "all assets", "dump", or empty browsing as unsupported for
-external use; ask for a specific design intent instead.
+external use; ask for a specific design intent instead. Request text must also
+avoid private-only field names such as `access_key_secret`, `client_secret`,
+`private_workspace_root`, private Drive file identifier fields, `local_path`, or
+`trust_tier`.
 
 `bundle-request` validates the public preflight before writing an output file.
 Invalid bundles are not written by default; `-AllowInvalidOutput` is only for

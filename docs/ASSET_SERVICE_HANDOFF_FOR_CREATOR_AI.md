@@ -83,7 +83,7 @@ public-only local workflow. Create a request and request bundle, then send only
 the bundle to the private asset backend owner or approved handoff channel:
 
 ```powershell
-.\tools\connector-client.ps1 -Operation new-request -Query "Korean capital market reform briefing assets: KOSPI KOSDAQ finance chart modules, timeline icons, executive palette, Korean fonts" -AssetTypes "palette,icon,deck_component,font" -DeliveryMode metadata_only -Limit 12 -OutputPath ".\reports\asset-service-request.json"
+.\tools\connector-client.ps1 -Operation new-request -Query "Korean capital market reform briefing finance timeline icons" -AssetTypes "icon" -DeliveryMode metadata_only -Limit 3 -OutputPath ".\reports\asset-service-request.json"
 .\tools\connector-client.ps1 -Operation bundle-request -InputPath ".\reports\asset-service-request.json" -OutputPath ".\reports\asset-service-request-bundle.json"
 .\tools\connector-client.ps1 -Operation validate-bundle -InputPath ".\reports\asset-service-request-bundle.json"
 ```
@@ -125,9 +125,20 @@ external callers.
 1. Create a public-safe request in this repo.
 
 ```powershell
-.\tools\connector-client.ps1 -Operation new-request -Query "Korean capital market reform briefing assets: KOSPI KOSDAQ finance chart modules, timeline icons, executive palette, Korean fonts" -AssetTypes "palette,icon,deck_component,font" -DeliveryMode metadata_only -Limit 12 -OutputPath ".\reports\asset-service-request.json"
+.\tools\connector-client.ps1 -Operation new-request -Query "Korean capital market reform finance timeline icons" -AssetTypes "icon" -DeliveryMode metadata_only -Limit 3 -OutputPath ".\reports\asset-service-request.json"
 .\tools\connector-client.ps1 -Operation validate-request -InputPath ".\reports\asset-service-request.json"
 ```
+
+For a PPT maker, prefer the narrow helper that creates separate public bundles
+for fonts, color palettes, and deck components:
+
+```powershell
+.\tools\connector-client.ps1 -Operation ppt-metadata-bundles -Topic "Korean capital market reform executive presentation" -Limit 3 -OutputDir ".\reports\connector\ppt-metadata"
+```
+
+This helper is not a presentation preset. The PPT maker still assembles slides,
+chooses the final theme, and handles font installation UX with user approval.
+See `docs/PPT_MAKER_PUBLIC_ASSET_HANDOFF_GUIDE.md`.
 
 2. Run real metadata search through the approved private backend boundary.
 

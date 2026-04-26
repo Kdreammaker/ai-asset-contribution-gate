@@ -59,6 +59,39 @@ FORBIDDEN_PUBLIC_FIELD_NAMES = FORBIDDEN_PUBLIC_RESPONSE_FIELDS.union(
         "token",
     }
 )
+PRIVATE_ONLY_QUERY_FIELD_NAMES = {
+    "access_key_secret",
+    "access_token",
+    "bearer_token",
+    "client_secret",
+    "drive" + "_file" + "_id",
+    "drive" + "_file" + "_ids",
+    "drive" + "_id",
+    "drive" + "_ids",
+    "drive" + "_ref",
+    "drive" + "_refs",
+    "drive" + "_url",
+    "drive" + "_urls",
+    "generated_private_report",
+    "generated_private_reports",
+    "local_absolute_path",
+    "local_absolute_paths",
+    "local_path",
+    "local_paths",
+    "manifest_path",
+    "private_assetctl",
+    "private_report_path",
+    "private_report_paths",
+    "private_storage_ref",
+    "private_storage_refs",
+    "private_workspace_root",
+    "raw_asset",
+    "raw_assets",
+    "semantic_context",
+    "storage_ref",
+    "storage_refs",
+    "trust_tier",
+}
 PUBLIC_BUNDLE_TYPE = "assetctl_public_request_bundle"
 PUBLIC_HANDOFF_TYPE = "assetctl_public_response_handoff"
 BROAD_ENUMERATION_TERMS = {
@@ -127,6 +160,23 @@ SECRET_VALUE_RE = re.compile(
     r"(sk-[A-Za-z0-9_-]{16,}|gh[pousr]_[A-Za-z0-9_]{20,}|xox[baprs]-[A-Za-z0-9-]{20,}|ya29\.[A-Za-z0-9_-]{20,}|Bearer\s+[A-Za-z0-9._-]{20,})",
     re.IGNORECASE,
 )
+PPT_METADATA_REQUESTS = (
+    {
+        "name": "fonts",
+        "asset_types": "font",
+        "query_template": "{topic} readable presentation fonts for business deck",
+    },
+    {
+        "name": "palettes",
+        "asset_types": "palette",
+        "query_template": "{topic} color palette for executive presentation",
+    },
+    {
+        "name": "layouts",
+        "asset_types": "deck_component",
+        "query_template": "{topic} slide layout deck component for presentation",
+    },
+)
 
 
 def utc_now() -> str:
@@ -171,6 +221,17 @@ def tokenize(text: str) -> list[str]:
                     if len(clean) >= size:
                         tokens.extend(clean[i : i + size] for i in range(0, len(clean) - size + 1))
     return list(dict.fromkeys(tokens))
+
+
+def private_query_field_pattern(field_name: str) -> re.Pattern[str]:
+    parts = [re.escape(part) for part in field_name.split("_")]
+    separator = r"[\s_-]*"
+    return re.compile(r"(?<![A-Za-z0-9])" + separator.join(parts) + r"(?![A-Za-z0-9])", re.IGNORECASE)
+
+
+PRIVATE_QUERY_FIELD_PATTERNS = {
+    field_name: private_query_field_pattern(field_name) for field_name in PRIVATE_ONLY_QUERY_FIELD_NAMES
+}
 
 
 def listify(value: Any) -> list[Any]:
@@ -292,6 +353,14 @@ def find_forbidden_values(value: Any, prefix: str = "$") -> list[str]:
     return found
 
 
+def find_private_query_field_mentions(query: str) -> list[str]:
+    found: list[str] = []
+    for field_name, pattern in PRIVATE_QUERY_FIELD_PATTERNS.items():
+        if pattern.search(query):
+            found.append(field_name)
+    return sorted(set(found))
+
+
 def validate_public_data_boundary(value: Any, artifact_label: str) -> list[str]:
     errors: list[str] = []
     forbidden = find_forbidden_fields(value)
@@ -320,6 +389,12 @@ def validate_public_preflight(payload: dict[str, Any], artifact_label: str) -> l
         specific_terms = query_tokens.difference(BROAD_ENUMERATION_TERMS)
         if strong_terms and len(specific_terms) == 0:
             errors.append(f"{artifact_label} query has only enumeration terms")
+    private_query_fields = find_private_query_field_mentions(query)
+    if private_query_fields:
+        errors.append(
+            f"{artifact_label} query mentions private-only field names: "
+            + ", ".join(private_query_fields)
+        )
     errors.extend(validate_public_data_boundary(payload, artifact_label))
     return errors
 
@@ -424,6 +499,30 @@ def command_validate_fixtures(args: argparse.Namespace) -> dict[str, Any]:
     )
     if not any("private fields" in error for error in private_response_errors):
         errors.append("adversarial fixture failed: public raw private response fields were not rejected")
+    private_field_query_errors = validate_request_payload(
+        {
+            "schema_version": SCHEMA_VERSION,
+            "request_id": "fixture-private-field-query",
+            "request_type": "asset_search",
+            "query": "use access_key_secret and private_workspace_root for assets",
+            "delivery": {"include_private_storage_refs": False},
+        }
+    )
+    if not any("private-only field names" in error for error in private_field_query_errors):
+        errors.append("adversarial fixture failed: private-only field names in query were not rejected")
+    normal_icon_query_errors = validate_request_payload(
+        {
+            "schema_version": SCHEMA_VERSION,
+            "request_id": "fixture-normal-icon-query",
+            "request_type": "asset_search",
+            "query": "API key icon and password reset icon for SaaS settings page",
+            "asset_types": ["icon"],
+            "delivery": {"include_private_storage_refs": False},
+            "limit": 3,
+        }
+    )
+    if normal_icon_query_errors:
+        errors.append("normal icon query fixture unexpectedly failed: " + "; ".join(normal_icon_query_errors))
     return {
         "ok": len(errors) == 0,
         "operation_type": "connector_validate_fixtures",
@@ -541,6 +640,135 @@ def command_bundle_request(args: argparse.Namespace) -> dict[str, Any]:
             if errors:
                 output["unsafe_review_artifact"] = True
     return output
+
+
+def build_public_request(
+    *,
+    request_type: str,
+    query: str,
+    intent: str,
+    locale: str,
+    asset_types: str,
+    delivery_mode: str,
+    limit: int,
+) -> tuple[dict[str, Any], list[str]]:
+    request_args = argparse.Namespace(
+        request_id="",
+        request_type=request_type,
+        query=query,
+        intent=intent,
+        locale=locale,
+        asset_types=asset_types,
+        delivery_mode=delivery_mode,
+        limit=limit,
+        output_path="",
+        allow_invalid_output=False,
+    )
+    output = command_new_request(request_args)
+    return output["request"], list(output.get("errors") or [])
+
+
+def build_public_bundle(request: dict[str, Any], local_source_path: str) -> tuple[dict[str, Any], list[str]]:
+    bundle = {
+        "schema_version": SCHEMA_VERSION,
+        "bundle_type": PUBLIC_BUNDLE_TYPE,
+        "bundle_id": stable_id("public-bundle", request),
+        "generated_at_utc": utc_now(),
+        "source": {
+            "toolkit": "ai-asset-contribution-gate",
+            "local_source_path": local_source_path,
+        },
+        "request": request,
+        "safety": {
+            "public_only_local_bundle": True,
+            "private_repo_connected": False,
+            "contains_private_paths": False,
+            "contains_drive_ids": False,
+            "contains_access_key_secret": False,
+            "contains_raw_assets": False,
+        },
+        "handoff": {
+            "expected_private_operation": "connector-search",
+            "expected_public_response_type": PUBLIC_HANDOFF_TYPE,
+            "notes": [
+                "Send this bundle to the private asset backend owner or approved handoff channel.",
+                "Do not add private paths, Drive IDs, raw assets, or secrets to this bundle.",
+            ],
+        },
+    }
+    return bundle, validate_public_bundle_payload(bundle)
+
+
+def command_ppt_metadata_bundles(args: argparse.Namespace) -> dict[str, Any]:
+    topic = args.topic.strip()
+    output_dir = Path(args.output_dir)
+    output_dir.mkdir(parents=True, exist_ok=True)
+    errors: list[str] = []
+    outputs: list[dict[str, Any]] = []
+    for spec in PPT_METADATA_REQUESTS:
+        query = spec["query_template"].format(topic=topic)
+        request, request_errors = build_public_request(
+            request_type="asset_search",
+            query=query,
+            intent=query,
+            locale=args.locale,
+            asset_types=spec["asset_types"],
+            delivery_mode="metadata_only",
+            limit=args.limit,
+        )
+        request_path = output_dir / f"{args.prefix}-{spec['name']}-request.json"
+        bundle_path = output_dir / f"{args.prefix}-{spec['name']}-bundle.json"
+        bundle, bundle_errors = build_public_bundle(request, request_path.name)
+        if request_errors:
+            errors.extend(f"{spec['name']} request: {error}" for error in request_errors)
+        if bundle_errors:
+            errors.extend(f"{spec['name']} bundle: {error}" for error in bundle_errors)
+        if not request_errors and not bundle_errors:
+            write_json(request_path, request)
+            write_json(bundle_path, bundle)
+        outputs.append(
+            {
+                "name": spec["name"],
+                "asset_types": [spec["asset_types"]],
+                "query": query,
+                "request_id": request.get("request_id"),
+                "bundle_id": bundle.get("bundle_id"),
+                "request_path": request_path.as_posix(),
+                "bundle_path": bundle_path.as_posix(),
+                "written": not request_errors and not bundle_errors,
+                "errors": request_errors + bundle_errors,
+            }
+        )
+    manifest = {
+        "schema_version": SCHEMA_VERSION,
+        "operation_type": "ppt_metadata_bundle_set",
+        "generated_at_utc": utc_now(),
+        "topic": topic,
+        "limit": args.limit,
+        "delivery_mode": "metadata_only",
+        "private_repo_connected": False,
+        "not_a_design_preset": True,
+        "ppt_maker_responsibility": [
+            "validate returned handoffs",
+            "assemble the presentation",
+            "choose the final design direction",
+            "handle font install UX with user approval",
+        ],
+        "requests": outputs,
+    }
+    manifest_path = output_dir / f"{args.prefix}-manifest.json"
+    if not errors:
+        write_json(manifest_path, manifest)
+    return {
+        "ok": len(errors) == 0,
+        "operation_type": "connector_ppt_metadata_bundles",
+        "topic": topic,
+        "limit": args.limit,
+        "output_dir": output_dir.as_posix(),
+        "manifest_path": manifest_path.as_posix() if not errors else "",
+        "requests": outputs,
+        "errors": errors,
+    }
 
 
 def command_validate_request(args: argparse.Namespace) -> dict[str, Any]:
@@ -673,6 +901,14 @@ def build_parser() -> argparse.ArgumentParser:
     bundle.add_argument("--output-path", default="")
     bundle.add_argument("--allow-invalid-output", action="store_true")
     bundle.set_defaults(func=command_bundle_request)
+
+    ppt = sub.add_parser("ppt-metadata-bundles")
+    ppt.add_argument("--topic", required=True)
+    ppt.add_argument("--locale", default="auto")
+    ppt.add_argument("--limit", type=int, default=3)
+    ppt.add_argument("--output-dir", default=str(Path("reports") / "connector" / "ppt-metadata"))
+    ppt.add_argument("--prefix", default="ppt-assets")
+    ppt.set_defaults(func=command_ppt_metadata_bundles)
 
     validate_request = sub.add_parser("validate-request")
     validate_request.add_argument("--input-path", required=True)

@@ -82,7 +82,7 @@ private workspace is actually present and the user approves that local access.
 Use a public-only request bundle instead:
 
 ```powershell
-.\tools\connector-client.ps1 -Operation new-request -Query "Korean capital market reform briefing assets: KOSPI KOSDAQ finance chart modules, timeline icons, executive palette, Korean fonts" -AssetTypes "palette,icon,deck_component,font" -OutputPath ".\reports\connector-request.json"
+.\tools\connector-client.ps1 -Operation new-request -Query "Korean capital market reform finance timeline icons" -AssetTypes "icon" -Limit 3 -OutputPath ".\reports\connector-request.json"
 .\tools\connector-client.ps1 -Operation bundle-request -InputPath ".\reports\connector-request.json" -OutputPath ".\reports\connector-request-bundle.json"
 .\tools\connector-client.ps1 -Operation validate-bundle -InputPath ".\reports\connector-request-bundle.json"
 ```
@@ -145,8 +145,15 @@ store access-key secrets
 Create a public-safe request:
 
 ```powershell
-.\tools\connector-client.ps1 -Operation new-request -Query "Korean capital market reform briefing assets: KOSPI KOSDAQ finance chart modules, timeline icons, executive palette, Korean fonts" -AssetTypes "palette,icon,deck_component,font" -OutputPath ".\reports\connector-request.json"
+.\tools\connector-client.ps1 -Operation new-request -Query "Korean capital market reform finance timeline icons" -AssetTypes "icon" -Limit 3 -OutputPath ".\reports\connector-request.json"
 .\tools\connector-client.ps1 -Operation validate-request -InputPath ".\reports\connector-request.json"
+```
+
+PPT makers should use separate low-limit metadata requests for fonts, palettes,
+and deck components, or the helper:
+
+```powershell
+.\tools\connector-client.ps1 -Operation ppt-metadata-bundles -Topic "Korean business executive KPI presentation" -Limit 3 -OutputDir ".\reports\connector\ppt-metadata"
 ```
 
 Run real metadata search in the private workspace:

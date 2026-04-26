@@ -1,5 +1,5 @@
 param(
-    [ValidateSet('validate-fixtures', 'new-request', 'bundle-request', 'validate-request', 'validate-bundle', 'validate-response', 'validate-handoff', 'search-metadata')]
+    [ValidateSet('validate-fixtures', 'new-request', 'bundle-request', 'ppt-metadata-bundles', 'validate-request', 'validate-bundle', 'validate-response', 'validate-handoff', 'search-metadata')]
     [string]$Operation = 'validate-fixtures',
     [string]$Root = (Resolve-Path (Join-Path $PSScriptRoot '..')).Path,
     [string]$InputPath = '',
@@ -11,6 +11,9 @@ param(
     [string]$Locale = 'auto',
     [string]$AssetTypes = '',
     [string]$AssetType = '',
+    [string]$Topic = '',
+    [string]$OutputDir = '',
+    [string]$Prefix = 'ppt-assets',
     [string]$DeliveryMode = 'metadata_only',
     [int]$Limit = 10,
     [switch]$AllowInvalidOutput,
@@ -62,6 +65,14 @@ switch ($Operation) {
         if (-not [string]::IsNullOrWhiteSpace($Intent)) { $argsList += @('--intent', $Intent) }
         if (-not [string]::IsNullOrWhiteSpace($OutputPath)) { $argsList += @('--output-path', $OutputPath) }
         if ($AllowInvalidOutput) { $argsList += @('--allow-invalid-output') }
+    }
+    'ppt-metadata-bundles' {
+        if ([string]::IsNullOrWhiteSpace($Topic)) {
+            if ([string]::IsNullOrWhiteSpace($Query)) { throw 'ppt-metadata-bundles requires -Topic or -Query.' }
+            $Topic = $Query
+        }
+        $argsList += @('--topic', $Topic, '--locale', $Locale, '--limit', ([string]$Limit), '--prefix', $Prefix)
+        if (-not [string]::IsNullOrWhiteSpace($OutputDir)) { $argsList += @('--output-dir', $OutputDir) }
     }
     'validate-request' {
         if ([string]::IsNullOrWhiteSpace($InputPath)) { throw 'validate-request requires -InputPath.' }
