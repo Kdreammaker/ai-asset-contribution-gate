@@ -1,0 +1,208 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://example.local/asset-registry/ppt-maker-discovery-response.schema.json",
+  "title": "PPT Maker Discovery Response",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["contract", "response_id", "created_at", "status", "request", "candidate_groups", "failures", "public_safety"],
+  "properties": {
+    "contract": { "$ref": "#/$defs/contract" },
+    "response_id": { "type": "string", "minLength": 1 },
+    "created_at": { "type": "string", "minLength": 1 },
+    "status": { "enum": ["success", "partial", "no_candidates", "policy_blocked", "validation_failed"] },
+    "request": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["intent", "locale", "categories", "delivery_need"],
+      "properties": {
+        "intent": { "type": "string", "minLength": 1 },
+        "locale": { "type": "string", "minLength": 1 },
+        "categories": {
+          "type": "array",
+          "minItems": 1,
+          "items": { "$ref": "#/$defs/asset_type" },
+          "uniqueItems": true
+        },
+        "delivery_need": { "enum": ["discovery_menu", "package_proposal", "layout_recipe", "final_qa"] },
+        "limit_per_category": { "type": "integer", "minimum": 1, "maximum": 10 }
+      }
+    },
+    "candidate_groups": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["asset_type", "candidates"],
+        "properties": {
+          "asset_type": { "$ref": "#/$defs/asset_type" },
+          "candidates": {
+            "type": "array",
+            "items": { "$ref": "#/$defs/candidate" }
+          }
+        }
+      }
+    },
+    "starter_kits": {
+      "type": "array",
+      "items": { "$ref": "#/$defs/starter_kit" }
+    },
+    "failures": {
+      "type": "array",
+      "items": { "$ref": "#/$defs/failure" }
+    },
+    "public_safety": { "$ref": "#/$defs/public_safety" }
+  },
+  "$defs": {
+    "contract": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["name", "version", "compatibility"],
+      "properties": {
+        "name": { "const": "b44.ppt_maker_asset_handoff" },
+        "version": { "const": "1.0" },
+        "compatibility": { "const": "additive_to_b43_1" }
+      }
+    },
+    "asset_type": {
+      "enum": ["font", "palette", "deck_component", "icon", "illustration", "approved_image", "mockup", "embedded_source_image"]
+    },
+    "availability_status": {
+      "enum": ["metadata_only", "actual_file_available", "package_possible", "package_manifest_available", "layout_recipe_available", "pptx_snippet_available", "approval_pending", "not_materializable", "unavailable", "policy_blocked", "validation_failed"]
+    },
+    "materialization_status": {
+      "enum": ["metadata_only", "proposal_required", "proposal_available", "approval_pending", "approved_package_available", "materialized", "package_unavailable", "file_missing", "license_unclear", "policy_blocked", "validation_failed", "not_materializable"]
+    },
+    "availability_flag": {
+      "enum": ["yes", "no", "approval_required", "not_applicable", "unknown"]
+    },
+    "recommended_next_action": {
+      "enum": ["use_metadata_only_guidance", "request_package_proposal", "request_owner_approval", "use_approved_package", "use_layout_recipe", "request_pptx_snippet", "use_system_font", "use_native_shape_icon", "request_approved_asset", "request_user_asset", "synthesize_replacement", "redesign_without_image", "retry_with_narrower_intent", "wait_for_approval", "no_action_available"]
+    },
+    "fallback_policy": {
+      "enum": ["use_system_font", "use_native_shape_icon", "request_approved_asset", "request_user_asset", "synthesize_replacement", "redesign_without_image", "omit_optional_asset", "manual_install_font", "use_metadata_only_guidance", "none_required"]
+    },
+    "license_action": {
+      "enum": ["allowed_no_attribution_required", "allowed_with_attribution", "review_required", "owner_approval_required", "paid_license_required", "policy_blocked", "unknown"]
+    },
+    "candidate": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["result_id", "stable_asset_key", "contract_version", "asset_type", "display_name", "availability_status", "materialization_status", "actual_file_available", "package_manifest_available", "layout_recipe_available", "pptx_snippet_available", "recommended_next_action", "fallback_policy", "license_action"],
+      "properties": {
+        "result_id": { "type": "string", "minLength": 1 },
+        "stable_asset_key": { "type": "string", "minLength": 1 },
+        "asset_uid": { "type": ["string", "null"] },
+        "contract_version": { "const": "1.0" },
+        "asset_type": { "$ref": "#/$defs/asset_type" },
+        "display_name": { "type": "string", "minLength": 1 },
+        "summary": { "type": "string" },
+        "availability_status": { "$ref": "#/$defs/availability_status" },
+        "materialization_status": { "$ref": "#/$defs/materialization_status" },
+        "actual_file_available": { "$ref": "#/$defs/availability_flag" },
+        "package_manifest_available": { "$ref": "#/$defs/availability_flag" },
+        "layout_recipe_available": { "$ref": "#/$defs/availability_flag" },
+        "pptx_snippet_available": { "$ref": "#/$defs/availability_flag" },
+        "recommended_next_action": { "$ref": "#/$defs/recommended_next_action" },
+        "fallback_policy": { "$ref": "#/$defs/fallback_policy" },
+        "license_class": { "type": "string" },
+        "license_action": { "$ref": "#/$defs/license_action" },
+        "font": { "$ref": "#/$defs/font_info" },
+        "palette": { "$ref": "#/$defs/palette_info" },
+        "layout": { "$ref": "#/$defs/layout_info" },
+        "embedded_media": { "$ref": "#/$defs/embedded_media_info" },
+        "policy_notes": { "type": "array", "items": { "type": "string" } }
+      }
+    },
+    "font_info": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["family_name", "style_names", "fallback_font", "install_notes", "embedding_notes", "redistribution_notes", "user_approval_required"],
+      "properties": {
+        "family_name": { "type": "string", "minLength": 1 },
+        "style_names": { "type": "array", "items": { "type": "string" } },
+        "fallback_font": { "type": "string", "minLength": 1 },
+        "install_notes": { "type": "string" },
+        "embedding_notes": { "type": "string" },
+        "redistribution_notes": { "type": "string" },
+        "user_approval_required": { "type": "boolean" }
+      }
+    },
+    "palette_info": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["tokens"],
+      "properties": {
+        "tokens": {
+          "type": "array",
+          "items": { "$ref": "#/$defs/palette_token" }
+        },
+        "contrast_notes": { "type": "string" }
+      }
+    },
+    "palette_token": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["token", "hex", "role"],
+      "properties": {
+        "token": { "type": "string", "minLength": 1 },
+        "hex": { "type": "string", "pattern": "^#[0-9A-Fa-f]{6}$" },
+        "role": { "type": "string", "minLength": 1 },
+        "ppt_theme_slot": { "type": "string" },
+        "contrast_notes": { "type": "string" }
+      }
+    },
+    "layout_info": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "module_id": { "type": "string" },
+        "composition_id": { "type": "string" },
+        "layout_recipe_id": { "type": "string" }
+      }
+    },
+    "embedded_media_info": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["relationship_category", "policy_status", "replacement_guidance"],
+      "properties": {
+        "relationship_category": { "enum": ["original_embedded_source", "generated_preview", "reference_only", "approved_replacement_candidate", "user_supplied_required", "unknown"] },
+        "policy_status": { "enum": ["metadata_inventory_only", "approved_for_reuse", "approval_required", "license_unclear", "policy_blocked", "not_applicable"] },
+        "replacement_guidance": { "enum": ["synthesize_replacement", "request_approved_asset", "request_user_asset", "redesign_without_image", "omit_optional_asset", "use_native_shape_icon"] }
+      }
+    },
+    "starter_kit": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["starter_kit_id", "display_name", "candidate_result_ids", "recommended_next_action"],
+      "properties": {
+        "starter_kit_id": { "type": "string", "minLength": 1 },
+        "display_name": { "type": "string", "minLength": 1 },
+        "candidate_result_ids": { "type": "array", "items": { "type": "string" } },
+        "recommended_next_action": { "$ref": "#/$defs/recommended_next_action" }
+      }
+    },
+    "failure": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["status", "reason_code", "public_message", "recommended_next_action", "retry_allowed"],
+      "properties": {
+        "status": { "enum": ["no_candidates", "package_unavailable", "approval_pending", "license_unclear", "file_missing", "policy_blocked", "validation_failed", "partial"] },
+        "reason_code": { "type": "string", "minLength": 1 },
+        "public_message": { "type": "string", "minLength": 1 },
+        "recommended_next_action": { "$ref": "#/$defs/recommended_next_action" },
+        "retry_allowed": { "type": "boolean" }
+      }
+    },
+    "public_safety": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["private_refs_redacted", "contains_raw_assets", "contains_drive_ids", "contains_private_paths"],
+      "properties": {
+        "private_refs_redacted": { "const": true },
+        "contains_raw_assets": { "const": false },
+        "contains_drive_ids": { "const": false },
+        "contains_private_paths": { "const": false }
+      }
+    }
+  }
+}

@@ -1,0 +1,126 @@
+{
+  "contract": {
+    "name": "b44.ppt_maker_asset_handoff",
+    "version": "1.0",
+    "compatibility": "additive_to_b43_1"
+  },
+  "response_id": "ppt-package:17427ea41f781722",
+  "created_at": "2026-04-26T08:24:32Z",
+  "status": "proposal",
+  "request": {
+    "request_id": "req:0cad1e568f9d4be3-package",
+    "selected_result_ids": [
+      "result:f5d28f17032c219e",
+      "result:8915edc918c18511",
+      "result:9d813b608b32b96e"
+    ],
+    "delivery_need": "package_proposal"
+  },
+  "approval": {
+    "status": "proposed",
+    "required_before_materialization": true,
+    "approved_by": null,
+    "approved_at_utc": null
+  },
+  "materialization_status": "proposal_available",
+  "package_manifest_available": "approval_required",
+  "delivery_mode": "private_side_materialization",
+  "selected_items": [
+    {
+      "result_id": "result:f5d28f17032c219e",
+      "stable_asset_key": "ppt-asset-key:31aac9082775abb3",
+      "asset_type": "font",
+      "display_name": "SourceSerif4-Italic[opsz,wght].ttf",
+      "actual_file_available": "no",
+      "package_manifest_available": "approval_required",
+      "layout_recipe_available": "not_applicable",
+      "pptx_snippet_available": "not_applicable",
+      "license_action": "review_required",
+      "fallback_policy": "use_system_font",
+      "recommended_next_action": "use_system_font",
+      "font": {
+        "family_name": "SourceSerif4-Italic[opsz,wght].ttf",
+        "style_names": [
+          "Regular",
+          "Medium",
+          "Bold"
+        ],
+        "fallback_font": "Malgun Gothic",
+        "install_notes": "Ask the user before installing packaged font files.",
+        "embedding_notes": "Verify the exported PPTX actually uses this family; report fallback if not.",
+        "redistribution_notes": "Review license notes before sharing outside the owner-controlled workspace.",
+        "user_approval_required": true
+      },
+      "package_asset_paths": [],
+      "notes": [
+        "license_action:check-license-file"
+      ]
+    },
+    {
+      "result_id": "result:8915edc918c18511",
+      "stable_asset_key": "ppt-asset-key:c0bba1172aa57456",
+      "asset_type": "font",
+      "display_name": "SourceSerif4[opsz,wght].ttf",
+      "actual_file_available": "no",
+      "package_manifest_available": "approval_required",
+      "layout_recipe_available": "not_applicable",
+      "pptx_snippet_available": "not_applicable",
+      "license_action": "review_required",
+      "fallback_policy": "use_system_font",
+      "recommended_next_action": "use_system_font",
+      "font": {
+        "family_name": "SourceSerif4[opsz,wght].ttf",
+        "style_names": [
+          "Regular",
+          "Medium",
+          "Bold"
+        ],
+        "fallback_font": "Malgun Gothic",
+        "install_notes": "Ask the user before installing packaged font files.",
+        "embedding_notes": "Verify the exported PPTX actually uses this family; report fallback if not.",
+        "redistribution_notes": "Review license notes before sharing outside the owner-controlled workspace.",
+        "user_approval_required": true
+      },
+      "package_asset_paths": [],
+      "notes": [
+        "license_action:check-license-file"
+      ]
+    },
+    {
+      "result_id": "result:9d813b608b32b96e",
+      "stable_asset_key": "ppt-asset-key:b59cb87f851976da",
+      "asset_type": "palette",
+      "display_name": "Brick Red Split-Complementary Dashboard",
+      "actual_file_available": "not_applicable",
+      "package_manifest_available": "not_applicable",
+      "layout_recipe_available": "not_applicable",
+      "pptx_snippet_available": "not_applicable",
+      "license_action": "allowed_no_attribution_required",
+      "fallback_policy": "none_required",
+      "recommended_next_action": "use_metadata_only_guidance",
+      "package_asset_paths": [],
+      "notes": []
+    }
+  ],
+  "failures": [],
+  "public_safety": {
+    "private_refs_redacted": true,
+    "contains_raw_assets": false,
+    "contains_drive_ids": false,
+    "contains_private_paths": false
+  },
+  "package_manifest": {
+    "package_manifest_id": "ppt-package-manifest:17427ea41f781722",
+    "relative_package_root": "downloaded-assets/_work/connector-packages/latest",
+    "assets": [],
+    "license_notes": [
+      "Owner approval is required before binary package delivery."
+    ],
+    "import_instructions": [
+      "Validate the package manifest and checksums before using files in PPTX."
+    ],
+    "manual_actions": [
+      "Ask the owner to approve materialization before any file copy or external sharing."
+    ]
+  }
+}

@@ -137,6 +137,19 @@ This is a safe request helper, not a design preset. The PPT maker still owns
 slide assembly, final design choices, font installation UX, and fallbacks.
 See [`docs/PPT_MAKER_PUBLIC_ASSET_HANDOFF_GUIDE.md`](docs/PPT_MAKER_PUBLIC_ASSET_HANDOFF_GUIDE.md).
 
+For the B44 PPT maker contract, the public toolkit now includes public-safe
+schemas and synthetic fixtures for discovery menus and package proposals. A PPT
+maker can create an intent-first request without knowing result IDs:
+
+```powershell
+.\tools\connector-client.ps1 -Operation new-request -RequestType "ppt-maker-discovery" -Query "Korean executive KPI deck with icons and chart palette" -AssetTypes "font,palette,deck_component,icon" -DeliveryMode "ppt_maker_discovery_menu" -Limit 3 -OutputPath ".\reports\ppt-maker-discovery-request.json"
+.\tools\connector-client.ps1 -Operation bundle-request -InputPath ".\reports\ppt-maker-discovery-request.json" -OutputPath ".\reports\ppt-maker-discovery-bundle.json"
+```
+
+Returned B44 discovery and package responses are still metadata/proposal
+handoffs. They must not contain raw assets, Drive IDs, private paths, secrets,
+or generated private reports.
+
 Search a public-safe metadata fixture or an approved private export metadata
 file that the private workspace gives you:
 

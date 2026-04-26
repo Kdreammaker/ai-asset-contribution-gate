@@ -265,6 +265,8 @@ def required_keys_for_fixture(name: str) -> list[str]:
         "public-handoff-deck-dry-run.example.json": ["schema_version", "handoff_type", "bundle_id", "request_id", "response"],
         "public-handoff-rejection.example.json": ["schema_version", "handoff_type", "bundle_id", "request_id", "errors"],
         "public-handoff-policy-blocked.example.json": ["schema_version", "handoff_type", "bundle_id", "request_id", "response", "errors"],
+        "ppt-maker-discovery-response.example.json": ["contract", "response_id", "created_at", "status", "request", "candidate_groups", "public_safety"],
+        "ppt-maker-package-response.example.json": ["contract", "response_id", "created_at", "status", "request", "approval", "selected_items", "public_safety"],
     }
     return mapping.get(name, [])
 
@@ -288,6 +290,8 @@ def validate_request_payload(payload: dict[str, Any]) -> list[str]:
 
 def validate_response_payload(payload: dict[str, Any]) -> list[str]:
     errors: list[str] = []
+    if is_b44_response(payload):
+        return validate_b44_response_payload(payload)
     for key in ("ok", "schema_version", "response_id", "request_id", "operation_type"):
         if key not in payload:
             errors.append(f"response missing required key: {key}")
@@ -314,6 +318,62 @@ def validate_response_payload(payload: dict[str, Any]) -> list[str]:
         leaked_fields = sorted(FORBIDDEN_PUBLIC_RESPONSE_FIELDS.intersection(row.keys()))
         if leaked_fields:
             errors.append(f"public response result {index} contains private fields: {', '.join(leaked_fields)}")
+    return errors
+
+
+def is_b44_response(payload: dict[str, Any]) -> bool:
+    contract = payload.get("contract")
+    return isinstance(contract, dict) and contract.get("name") == "b44.ppt_maker_asset_handoff"
+
+
+def validate_b44_response_payload(payload: dict[str, Any]) -> list[str]:
+    errors: list[str] = []
+    for key in ("contract", "response_id", "created_at", "status", "public_safety"):
+        if key not in payload:
+            errors.append(f"B44 response missing required key: {key}")
+    contract = payload.get("contract") or {}
+    if contract.get("version") != "1.0":
+        errors.append("B44 contract version must be 1.0")
+    if contract.get("compatibility") != "additive_to_b43_1":
+        errors.append("B44 compatibility must be additive_to_b43_1")
+    public_safety = payload.get("public_safety") or {}
+    expected_safety = {
+        "private_refs_redacted": True,
+        "contains_raw_assets": False,
+        "contains_drive_ids": False,
+        "contains_private_paths": False,
+    }
+    for key, expected in expected_safety.items():
+        if public_safety.get(key) is not expected:
+            errors.append(f"B44 public_safety.{key} must be {expected}")
+    if "candidate_groups" in payload:
+        if "request" not in payload:
+            errors.append("B44 discovery response missing request")
+        for group_index, group in enumerate(listify(payload.get("candidate_groups"))):
+            if not isinstance(group, dict):
+                errors.append(f"B44 candidate group {group_index} must be an object")
+                continue
+            if not group.get("asset_type"):
+                errors.append(f"B44 candidate group {group_index} missing asset_type")
+            for candidate_index, candidate in enumerate(listify(group.get("candidates"))):
+                if not isinstance(candidate, dict):
+                    errors.append(f"B44 candidate {group_index}.{candidate_index} must be an object")
+                    continue
+                for key in ("result_id", "stable_asset_key", "asset_type", "display_name", "availability_status", "materialization_status", "license_action"):
+                    if key not in candidate:
+                        errors.append(f"B44 candidate {group_index}.{candidate_index} missing {key}")
+    if "selected_items" in payload:
+        for key in ("request", "approval", "materialization_status", "package_manifest_available"):
+            if key not in payload:
+                errors.append(f"B44 package response missing {key}")
+        for item_index, item in enumerate(listify(payload.get("selected_items"))):
+            if not isinstance(item, dict):
+                errors.append(f"B44 package selected item {item_index} must be an object")
+                continue
+            for key in ("result_id", "stable_asset_key", "asset_type", "display_name", "license_action", "fallback_policy", "recommended_next_action"):
+                if key not in item:
+                    errors.append(f"B44 package selected item {item_index} missing {key}")
+    errors.extend(validate_public_data_boundary(payload, "B44 response"))
     return errors
 
 
@@ -459,6 +519,8 @@ def command_validate_fixtures(args: argparse.Namespace) -> dict[str, Any]:
                 errors.extend(validate_public_bundle_payload(payload))
             if path.name.startswith("public-handoff-"):
                 errors.extend(validate_public_handoff_payload(payload))
+            if path.name.startswith("ppt-maker-") and path.name.endswith("-response.example.json"):
+                errors.extend(validate_b44_response_payload(payload))
     jsonl_path = fixtures_dir / "public-cli-assets.fixture.jsonl"
     try:
         jsonl_rows = read_jsonl(jsonl_path)

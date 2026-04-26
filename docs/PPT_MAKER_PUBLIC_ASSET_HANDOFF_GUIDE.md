@@ -38,7 +38,7 @@ Minimum public-only setup:
 ```powershell
 git clone https://github.com/Kdreammaker/ai-asset-contribution-gate.git assetctl-public-toolkit
 cd assetctl-public-toolkit
-git checkout v0.3.10
+git checkout v0.3.11
 .\tools\bootstrap-workspace.ps1
 .\tools\assetctl-doctor.ps1 -SkipNetwork
 ```
@@ -123,6 +123,29 @@ The public helper creates the three common PPT metadata bundles:
 
 The helper writes separate request and bundle files for fonts, palettes, and
 deck components. It is not a design preset and does not assemble slides.
+
+For B44-compatible PPT makers, the discovery-first path is available when you
+want one response with grouped font, palette, deck component, and icon
+candidates:
+
+```powershell
+.\tools\connector-client.ps1 -Operation new-request `
+  -RequestType "ppt-maker-discovery" `
+  -Query "Korean business executive KPI presentation with restrained palette and dashboard icons" `
+  -AssetTypes "font,palette,deck_component,icon" `
+  -DeliveryMode "ppt_maker_discovery_menu" `
+  -Limit 3 `
+  -OutputPath ".\reports\connector\ppt-maker-discovery-request.json"
+
+.\tools\connector-client.ps1 -Operation bundle-request `
+  -InputPath ".\reports\connector\ppt-maker-discovery-request.json" `
+  -OutputPath ".\reports\connector\ppt-maker-discovery-bundle.json"
+```
+
+B44 discovery responses group candidates by `asset_type` and expose only
+public-safe `result_id` and `stable_asset_key` identifiers. Use those result IDs
+for a later B44 package proposal request only after the owner-side service has
+returned them.
 
 The helper is the preferred path for normal PPT maker onboarding. Use manual
 `new-request` plus `bundle-request` commands only when the PPT needs an

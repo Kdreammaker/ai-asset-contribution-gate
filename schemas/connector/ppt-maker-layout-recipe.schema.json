@@ -1,0 +1,122 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://example.local/asset-registry/ppt-maker-layout-recipe.schema.json",
+  "title": "PPT Maker Layout Recipe",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["contract", "layout_recipe_id", "created_at", "status", "module_id", "composition_id", "slide", "slots", "palette_mapping", "pptx_snippet_available", "public_safety"],
+  "properties": {
+    "contract": { "$ref": "#/$defs/contract" },
+    "layout_recipe_id": { "type": "string", "minLength": 1 },
+    "created_at": { "type": "string", "minLength": 1 },
+    "status": { "enum": ["recipe_only", "pptx_snippet_available", "approval_pending", "not_materializable", "validation_failed"] },
+    "module_id": { "type": "string", "minLength": 1 },
+    "composition_id": { "type": "string", "minLength": 1 },
+    "source_result_id": { "type": "string" },
+    "stable_asset_key": { "type": "string", "minLength": 1 },
+    "slide": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["size", "width_in", "height_in"],
+      "properties": {
+        "size": { "enum": ["widescreen_16_9", "standard_4_3", "custom"] },
+        "width_in": { "type": "number", "exclusiveMinimum": 0 },
+        "height_in": { "type": "number", "exclusiveMinimum": 0 }
+      }
+    },
+    "slots": {
+      "type": "array",
+      "minItems": 1,
+      "items": { "$ref": "#/$defs/slot" }
+    },
+    "palette_mapping": {
+      "type": "array",
+      "items": { "$ref": "#/$defs/palette_map" }
+    },
+    "implementation_notes": { "type": "array", "items": { "type": "string" } },
+    "pptx_snippet_available": { "$ref": "#/$defs/availability_flag" },
+    "pptx_snippet": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "requires_owner_approval": { "type": "boolean" },
+        "recommended_next_action": { "$ref": "#/$defs/recommended_next_action" }
+      }
+    },
+    "public_safety": { "$ref": "#/$defs/public_safety" }
+  },
+  "$defs": {
+    "contract": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["name", "version", "compatibility"],
+      "properties": {
+        "name": { "const": "b44.ppt_maker_asset_handoff" },
+        "version": { "const": "1.0" },
+        "compatibility": { "const": "additive_to_b43_1" }
+      }
+    },
+    "availability_flag": {
+      "enum": ["yes", "no", "approval_required", "not_applicable", "unknown"]
+    },
+    "recommended_next_action": {
+      "enum": ["use_metadata_only_guidance", "request_package_proposal", "request_owner_approval", "use_approved_package", "use_layout_recipe", "request_pptx_snippet", "use_system_font", "use_native_shape_icon", "request_approved_asset", "request_user_asset", "synthesize_replacement", "redesign_without_image", "retry_with_narrower_intent", "wait_for_approval", "no_action_available"]
+    },
+    "slot": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["slot_id", "role", "placeholder_name", "bounds_in", "typography", "palette_token"],
+      "properties": {
+        "slot_id": { "type": "string", "minLength": 1 },
+        "role": { "enum": ["title", "subtitle", "metric", "body", "chart", "table", "icon", "image", "footer", "divider", "annotation"] },
+        "placeholder_name": { "type": "string", "minLength": 1 },
+        "bounds_in": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["x", "y", "w", "h"],
+          "properties": {
+            "x": { "type": "number", "minimum": 0 },
+            "y": { "type": "number", "minimum": 0 },
+            "w": { "type": "number", "exclusiveMinimum": 0 },
+            "h": { "type": "number", "exclusiveMinimum": 0 }
+          }
+        },
+        "typography": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["font_family", "font_size_pt", "weight"],
+          "properties": {
+            "font_family": { "type": "string", "minLength": 1 },
+            "font_size_pt": { "type": "number", "exclusiveMinimum": 0 },
+            "weight": { "enum": ["regular", "medium", "semibold", "bold"] },
+            "fallback_font": { "type": "string" }
+          }
+        },
+        "palette_token": { "type": "string", "minLength": 1 },
+        "content_guidance": { "type": "string" }
+      }
+    },
+    "palette_map": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["token", "hex", "role"],
+      "properties": {
+        "token": { "type": "string", "minLength": 1 },
+        "hex": { "type": "string", "pattern": "^#[0-9A-Fa-f]{6}$" },
+        "role": { "type": "string", "minLength": 1 },
+        "ppt_theme_slot": { "type": "string" }
+      }
+    },
+    "public_safety": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["private_refs_redacted", "contains_raw_assets", "contains_drive_ids", "contains_private_paths"],
+      "properties": {
+        "private_refs_redacted": { "const": true },
+        "contains_raw_assets": { "const": false },
+        "contains_drive_ids": { "const": false },
+        "contains_private_paths": { "const": false }
+      }
+    }
+  }
+}

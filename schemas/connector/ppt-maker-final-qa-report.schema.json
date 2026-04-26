@@ -1,0 +1,142 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://example.local/asset-registry/ppt-maker-final-qa-report.schema.json",
+  "title": "PPT Maker Final QA Report",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["contract", "qa_report_id", "created_at", "deck", "status", "fonts_used", "font_fallbacks", "embedded_media_count", "approved_package_assets", "layout_recipes_used", "unresolved_metadata_only_items", "manual_actions", "remaining_risks", "validation_results"],
+  "properties": {
+    "contract": { "$ref": "#/$defs/contract" },
+    "qa_report_id": { "type": "string", "minLength": 1 },
+    "created_at": { "type": "string", "minLength": 1 },
+    "deck": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["deck_id", "slide_count", "locale"],
+      "properties": {
+        "deck_id": { "type": "string", "minLength": 1 },
+        "slide_count": { "type": "integer", "minimum": 0 },
+        "locale": { "type": "string", "minLength": 1 }
+      }
+    },
+    "status": { "enum": ["pass", "warn", "fail", "blocked"] },
+    "fonts_used": {
+      "type": "array",
+      "items": { "$ref": "#/$defs/font_used" }
+    },
+    "font_fallbacks": {
+      "type": "array",
+      "items": { "$ref": "#/$defs/font_fallback" }
+    },
+    "embedded_media_count": { "type": "integer", "minimum": 0 },
+    "approved_package_assets": {
+      "type": "array",
+      "items": { "$ref": "#/$defs/package_asset_used" }
+    },
+    "layout_recipes_used": {
+      "type": "array",
+      "items": { "$ref": "#/$defs/layout_recipe_used" }
+    },
+    "unresolved_metadata_only_items": {
+      "type": "array",
+      "items": { "$ref": "#/$defs/unresolved_item" }
+    },
+    "manual_actions": {
+      "type": "array",
+      "items": { "$ref": "#/$defs/manual_action" }
+    },
+    "remaining_risks": {
+      "type": "array",
+      "items": { "type": "string" }
+    },
+    "validation_results": {
+      "type": "array",
+      "items": { "$ref": "#/$defs/validation_result" }
+    }
+  },
+  "$defs": {
+    "contract": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["name", "version", "compatibility"],
+      "properties": {
+        "name": { "const": "b44.ppt_maker_asset_handoff" },
+        "version": { "const": "1.0" },
+        "compatibility": { "const": "additive_to_b43_1" }
+      }
+    },
+    "font_used": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["family_name", "source", "verified_in_pptx"],
+      "properties": {
+        "family_name": { "type": "string", "minLength": 1 },
+        "source": { "enum": ["system_font", "approved_package", "fallback", "unknown"] },
+        "verified_in_pptx": { "type": "boolean" }
+      }
+    },
+    "font_fallback": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["requested_family", "actual_family", "reason"],
+      "properties": {
+        "requested_family": { "type": "string", "minLength": 1 },
+        "actual_family": { "type": "string", "minLength": 1 },
+        "reason": { "type": "string", "minLength": 1 }
+      }
+    },
+    "package_asset_used": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["package_manifest_id", "relative_package_path", "sha256", "used_on_slides"],
+      "properties": {
+        "package_manifest_id": { "type": "string", "minLength": 1 },
+        "relative_package_path": { "type": "string", "minLength": 1 },
+        "sha256": { "type": "string", "minLength": 1 },
+        "used_on_slides": { "type": "array", "items": { "type": "integer", "minimum": 1 } }
+      }
+    },
+    "layout_recipe_used": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["layout_recipe_id", "module_id", "composition_id", "rendered_slide"],
+      "properties": {
+        "layout_recipe_id": { "type": "string", "minLength": 1 },
+        "module_id": { "type": "string", "minLength": 1 },
+        "composition_id": { "type": "string", "minLength": 1 },
+        "rendered_slide": { "type": "integer", "minimum": 1 }
+      }
+    },
+    "unresolved_item": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["result_id", "stable_asset_key", "reason", "recommended_next_action"],
+      "properties": {
+        "result_id": { "type": "string", "minLength": 1 },
+        "stable_asset_key": { "type": "string", "minLength": 1 },
+        "reason": { "enum": ["metadata_only", "package_unavailable", "approval_pending", "license_unclear", "file_missing", "policy_blocked", "validation_failed"] },
+        "recommended_next_action": { "enum": ["use_metadata_only_guidance", "request_package_proposal", "request_owner_approval", "use_approved_package", "use_layout_recipe", "request_pptx_snippet", "use_system_font", "use_native_shape_icon", "request_approved_asset", "request_user_asset", "synthesize_replacement", "redesign_without_image", "retry_with_narrower_intent", "wait_for_approval", "no_action_available"] }
+      }
+    },
+    "manual_action": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["action_type", "description", "required_before_final_use"],
+      "properties": {
+        "action_type": { "enum": ["install_font", "review_license", "provide_source_image", "approve_package", "replace_asset", "none"] },
+        "description": { "type": "string", "minLength": 1 },
+        "required_before_final_use": { "type": "boolean" }
+      }
+    },
+    "validation_result": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["check", "status"],
+      "properties": {
+        "check": { "type": "string", "minLength": 1 },
+        "status": { "enum": ["pass", "warn", "fail", "not_run"] },
+        "details": { "type": "string" }
+      }
+    }
+  }
+}

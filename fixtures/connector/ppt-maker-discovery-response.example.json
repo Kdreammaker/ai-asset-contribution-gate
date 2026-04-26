@@ -1,0 +1,266 @@
+{
+  "contract": {
+    "name": "b44.ppt_maker_asset_handoff",
+    "version": "1.0",
+    "compatibility": "additive_to_b43_1"
+  },
+  "response_id": "ppt-discovery:015e1dcc08496c2e",
+  "created_at": "2026-04-26T08:24:27Z",
+  "status": "success",
+  "request": {
+    "intent": "Korean executive KPI deck with icons and chart palette",
+    "locale": "auto",
+    "categories": [
+      "font",
+      "palette",
+      "deck_component",
+      "icon"
+    ],
+    "delivery_need": "discovery_menu",
+    "limit_per_category": 2
+  },
+  "candidate_groups": [
+    {
+      "asset_type": "font",
+      "candidates": [
+        {
+          "result_id": "result:f5d28f17032c219e",
+          "stable_asset_key": "ppt-asset-key:31aac9082775abb3",
+          "contract_version": "1.0",
+          "asset_type": "font",
+          "display_name": "SourceSerif4-Italic[opsz,wght].ttf",
+          "summary": "B44 metadata-matched candidate.",
+          "availability_status": "metadata_only",
+          "materialization_status": "proposal_required",
+          "actual_file_available": "no",
+          "package_manifest_available": "approval_required",
+          "layout_recipe_available": "not_applicable",
+          "pptx_snippet_available": "not_applicable",
+          "recommended_next_action": "use_system_font",
+          "fallback_policy": "use_system_font",
+          "license_class": "open-font",
+          "license_action": "review_required",
+          "font": {
+            "family_name": "SourceSerif4-Italic[opsz,wght].ttf",
+            "style_names": [
+              "Regular",
+              "Medium",
+              "Bold"
+            ],
+            "fallback_font": "Malgun Gothic",
+            "install_notes": "Ask the user before installing packaged font files.",
+            "embedding_notes": "Verify the exported PPTX actually uses this family; report fallback if not.",
+            "redistribution_notes": "Review license notes before sharing outside the owner-controlled workspace.",
+            "user_approval_required": true
+          },
+          "policy_notes": [
+            "license_action:check-license-file"
+          ]
+        },
+        {
+          "result_id": "result:8915edc918c18511",
+          "stable_asset_key": "ppt-asset-key:c0bba1172aa57456",
+          "contract_version": "1.0",
+          "asset_type": "font",
+          "display_name": "SourceSerif4[opsz,wght].ttf",
+          "summary": "B44 metadata-matched candidate.",
+          "availability_status": "metadata_only",
+          "materialization_status": "proposal_required",
+          "actual_file_available": "no",
+          "package_manifest_available": "approval_required",
+          "layout_recipe_available": "not_applicable",
+          "pptx_snippet_available": "not_applicable",
+          "recommended_next_action": "use_system_font",
+          "fallback_policy": "use_system_font",
+          "license_class": "open-font",
+          "license_action": "review_required",
+          "font": {
+            "family_name": "SourceSerif4[opsz,wght].ttf",
+            "style_names": [
+              "Regular",
+              "Medium",
+              "Bold"
+            ],
+            "fallback_font": "Malgun Gothic",
+            "install_notes": "Ask the user before installing packaged font files.",
+            "embedding_notes": "Verify the exported PPTX actually uses this family; report fallback if not.",
+            "redistribution_notes": "Review license notes before sharing outside the owner-controlled workspace.",
+            "user_approval_required": true
+          },
+          "policy_notes": [
+            "license_action:check-license-file"
+          ]
+        }
+      ]
+    },
+    {
+      "asset_type": "palette",
+      "candidates": [
+        {
+          "result_id": "result:9d813b608b32b96e",
+          "stable_asset_key": "ppt-asset-key:b59cb87f851976da",
+          "contract_version": "1.0",
+          "asset_type": "palette",
+          "display_name": "Brick Red Split-Complementary Dashboard",
+          "summary": "B44 metadata-matched candidate.",
+          "availability_status": "metadata_only",
+          "materialization_status": "metadata_only",
+          "actual_file_available": "not_applicable",
+          "package_manifest_available": "not_applicable",
+          "layout_recipe_available": "not_applicable",
+          "pptx_snippet_available": "not_applicable",
+          "recommended_next_action": "use_metadata_only_guidance",
+          "fallback_policy": "none_required",
+          "license_class": "open-source",
+          "license_action": "allowed_no_attribution_required",
+          "policy_notes": []
+        },
+        {
+          "result_id": "result:d46549a9a63d0c97",
+          "stable_asset_key": "ppt-asset-key:c5ea261ff1a054b3",
+          "contract_version": "1.0",
+          "asset_type": "palette",
+          "display_name": "Cacao Split-Complementary Dashboard",
+          "summary": "B44 metadata-matched candidate.",
+          "availability_status": "metadata_only",
+          "materialization_status": "metadata_only",
+          "actual_file_available": "not_applicable",
+          "package_manifest_available": "not_applicable",
+          "layout_recipe_available": "not_applicable",
+          "pptx_snippet_available": "not_applicable",
+          "recommended_next_action": "use_metadata_only_guidance",
+          "fallback_policy": "none_required",
+          "license_class": "open-source",
+          "license_action": "allowed_no_attribution_required",
+          "policy_notes": []
+        }
+      ]
+    },
+    {
+      "asset_type": "deck_component",
+      "candidates": [
+        {
+          "result_id": "result:def2012137e0e818",
+          "stable_asset_key": "ppt-asset-key:004e20e8a4156a74",
+          "contract_version": "1.0",
+          "asset_type": "deck_component",
+          "display_name": "composition_case_study_002_s001",
+          "summary": "B44 metadata-matched candidate.",
+          "availability_status": "layout_recipe_available",
+          "materialization_status": "metadata_only",
+          "actual_file_available": "not_applicable",
+          "package_manifest_available": "not_applicable",
+          "layout_recipe_available": "yes",
+          "pptx_snippet_available": "no",
+          "recommended_next_action": "use_layout_recipe",
+          "fallback_policy": "use_metadata_only_guidance",
+          "license_class": "unknown",
+          "license_action": "allowed_no_attribution_required",
+          "layout": {
+            "module_id": "",
+            "composition_id": "",
+            "layout_recipe_id": "layout-recipe:357e4ca2066fc0e1"
+          },
+          "policy_notes": [
+            "template_contract_only_no_source_content",
+            "embedded_source_images_not_reusable"
+          ]
+        },
+        {
+          "result_id": "result:44ced19028cd82bf",
+          "stable_asset_key": "ppt-asset-key:4cc0816392030f85",
+          "contract_version": "1.0",
+          "asset_type": "deck_component",
+          "display_name": "composition_case_study_002_s002",
+          "summary": "B44 metadata-matched candidate.",
+          "availability_status": "layout_recipe_available",
+          "materialization_status": "metadata_only",
+          "actual_file_available": "not_applicable",
+          "package_manifest_available": "not_applicable",
+          "layout_recipe_available": "yes",
+          "pptx_snippet_available": "no",
+          "recommended_next_action": "use_layout_recipe",
+          "fallback_policy": "use_metadata_only_guidance",
+          "license_class": "unknown",
+          "license_action": "allowed_no_attribution_required",
+          "layout": {
+            "module_id": "",
+            "composition_id": "",
+            "layout_recipe_id": "layout-recipe:00202c5e507e9b8b"
+          },
+          "policy_notes": [
+            "template_contract_only_no_source_content",
+            "embedded_source_images_not_reusable"
+          ]
+        }
+      ]
+    },
+    {
+      "asset_type": "icon",
+      "candidates": [
+        {
+          "result_id": "result:9b3d41dee005d90a",
+          "stable_asset_key": "ppt-asset-key:e392ae57e513cfe6",
+          "contract_version": "1.0",
+          "asset_type": "icon",
+          "display_name": "assets\\bold\\chart-bar-bold.svg",
+          "summary": "B44 metadata-matched candidate.",
+          "availability_status": "metadata_only",
+          "materialization_status": "proposal_required",
+          "actual_file_available": "no",
+          "package_manifest_available": "approval_required",
+          "layout_recipe_available": "not_applicable",
+          "pptx_snippet_available": "not_applicable",
+          "recommended_next_action": "use_native_shape_icon",
+          "fallback_policy": "use_native_shape_icon",
+          "license_class": "open-source",
+          "license_action": "allowed_no_attribution_required",
+          "policy_notes": []
+        },
+        {
+          "result_id": "result:597866f43bb17a49",
+          "stable_asset_key": "ppt-asset-key:c16a7362cd13b8fa",
+          "contract_version": "1.0",
+          "asset_type": "icon",
+          "display_name": "assets\\bold\\chart-bar-horizontal-bold.svg",
+          "summary": "B44 metadata-matched candidate.",
+          "availability_status": "metadata_only",
+          "materialization_status": "proposal_required",
+          "actual_file_available": "no",
+          "package_manifest_available": "approval_required",
+          "layout_recipe_available": "not_applicable",
+          "pptx_snippet_available": "not_applicable",
+          "recommended_next_action": "use_native_shape_icon",
+          "fallback_policy": "use_native_shape_icon",
+          "license_class": "open-source",
+          "license_action": "allowed_no_attribution_required",
+          "policy_notes": []
+        }
+      ]
+    }
+  ],
+  "starter_kits": [
+    {
+      "starter_kit_id": "starter-kit:87c761c21d47da89",
+      "display_name": "PPT maker matched starter kit",
+      "candidate_result_ids": [
+        "result:f5d28f17032c219e",
+        "result:8915edc918c18511",
+        "result:9d813b608b32b96e",
+        "result:d46549a9a63d0c97",
+        "result:def2012137e0e818",
+        "result:44ced19028cd82bf",
+        "result:9b3d41dee005d90a",
+        "result:597866f43bb17a49"
+      ],
+      "recommended_next_action": "request_package_proposal"
+    }
+  ],
+  "failures": [],
+  "public_safety": {
+    "private_refs_redacted": true,
+    "contains_raw_assets": false,
+    "contains_drive_ids": false,
+    "contains_private_paths": false
+  }
+}
