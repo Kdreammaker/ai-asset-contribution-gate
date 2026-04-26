@@ -8,6 +8,67 @@ The public toolkit is a communication device. It creates public-safe request
 bundles, validates returned handoffs, and consumes only redacted metadata or
 approved packages. It must not be treated as a private repository access path.
 
+## Handoff Packet For A PPT Maker AI
+
+Give this section to the PPT maker AI that is building the presentation:
+
+```text
+Use the public asset toolkit only. Do not clone, install, or request access to
+the private asset repository.
+
+Your job:
+1. Create narrow public request bundles for the assets you need.
+2. Send those bundles through the approved handoff channel to the asset service
+   owner.
+3. Validate the returned public handoff files.
+4. Use the returned metadata to choose fonts, palettes, and layout/deck
+   component direction.
+5. Assemble the PPT yourself.
+
+The asset service can return public-safe metadata, opaque result_id values,
+license/policy notes, and approved package handoffs when separately approved.
+It does not return private paths, Drive IDs, private registry dumps, generated
+private reports, or raw unapproved assets.
+```
+
+Minimum public-only setup:
+
+```powershell
+git clone https://github.com/Kdreammaker/ai-asset-contribution-gate.git assetctl-public-toolkit
+cd assetctl-public-toolkit
+git checkout v0.3.8
+.\tools\bootstrap-workspace.ps1
+.\tools\assetctl-doctor.ps1 -SkipNetwork
+```
+
+Generate the recommended PPT metadata request bundles:
+
+```powershell
+.\tools\connector-client.ps1 -Operation ppt-metadata-bundles `
+  -Topic "Korean business executive KPI presentation" `
+  -Limit 3 `
+  -OutputDir ".\reports\connector\ppt-metadata"
+```
+
+Send only these public bundle files to the asset service owner:
+
+```text
+reports/connector/ppt-metadata/ppt-assets-fonts-bundle.json
+reports/connector/ppt-metadata/ppt-assets-palettes-bundle.json
+reports/connector/ppt-metadata/ppt-assets-layouts-bundle.json
+```
+
+After the owner returns handoff JSON files, validate each one:
+
+```powershell
+.\tools\connector-client.ps1 -Operation validate-handoff -InputPath <returned-handoff.json>
+```
+
+If validation passes, read `response.results` and use the returned
+`display_name`, `asset_type`, `license_action`, `risk_level`, `recommended_for`,
+`avoid_for`, `style_summary`, `policy_notes`, and `materialization` fields. If
+validation fails, do not use the handoff.
+
 ## Recommended Request Shape
 
 Request narrow metadata groups instead of asking for all available assets:
@@ -34,6 +95,10 @@ The public helper creates the three common PPT metadata bundles:
 
 The helper writes separate request and bundle files for fonts, palettes, and
 deck components. It is not a design preset and does not assemble slides.
+
+The helper is the preferred path for normal PPT maker onboarding. Use manual
+`new-request` plus `bundle-request` commands only when the PPT needs an
+additional specific asset category, such as a single icon or illustration.
 
 ## What The Asset Service Can Return
 
