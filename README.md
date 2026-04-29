@@ -44,6 +44,7 @@ docs/CANDIDATE_CONTRIBUTION_GATE.md
 docs/PUBLIC_TOOLKIT_CLI_DESIGN.md
 docs/PRIVATE_WORKSPACE_CONNECTOR_SETUP.md
 docs/ASSET_SERVICE_HANDOFF_FOR_CREATOR_AI.md
+docs/ASSET_SYSTEM_CONSUMER_INTEGRATION_GUIDE.md
 ```
 
 ## Safety Defaults
@@ -243,6 +244,9 @@ enabled; raw private identifiers remain private-backend material. See
 
 For a creator AI handoff, start with
 [`docs/ASSET_SERVICE_HANDOFF_FOR_CREATOR_AI.md`](docs/ASSET_SERVICE_HANDOFF_FOR_CREATOR_AI.md).
+For any third-party consumer that needs approved-package use evidence and
+returned-report validation rules, read
+[`docs/ASSET_SYSTEM_CONSUMER_INTEGRATION_GUIDE.md`](docs/ASSET_SYSTEM_CONSUMER_INTEGRATION_GUIDE.md).
 
 ## License
 
